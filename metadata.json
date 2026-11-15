@@ -1,0 +1,6 @@
+{
+  "name": "EleGift - Quà Tết Cao Cấp Đinh Mùi 2027",
+  "description": "Nền tảng quà Tết doanh nghiệp & hộp quà sơn mài cao cấp Đinh Mùi 2027 với thiết kế riêng, khắc logo kim nhũ, chiết khấu B2B đến 25% và hóa đơn VAT minh bạch.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

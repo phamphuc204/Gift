@@ -1,0 +1,571 @@
+<!DOCTYPE html><html lang="vi" style="width: 1280px; height: 2086px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>EleGift - Quản Lý Tài Khoản &amp; Lịch Sử Đơn Hàng Tết Đinh Mùi 2027</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- FontAwesome Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-serif-tet { font-family: 'Playfair Display', Georgia, serif; }
+        .gold-gradient-text { background: linear-gradient(135deg, #FFF6D3 0%, #F5C542 40%, #E5A93C 70%, #FFF2B2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gold-border { border-color: rgba(245, 197, 66, 0.4); }
+        .radial-lantern-glow { background: radial-gradient(circle at 75% 35%, rgba(245, 66, 84, 0.35) 0%, rgba(185, 28, 28, 0.2) 35%, transparent 70%); }
+        .gold-card-shadow { box-shadow: 0 20px 50px -10px rgba(136, 19, 19, 0.4), 0 0 0 1px rgba(245, 197, 66, 0.25); }
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #2a0505; }
+        ::-webkit-scrollbar-thumb { background: #7a151b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+        .btn-gold {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            color: #450a0a;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        .btn-gold:hover {
+            background: linear-gradient(135deg, #fde047 0%, #fbbf24 50%, #b45309 100%);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.45);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="bg-[#4a080c] font-sans text-gray-100 antialiased overflow-x-hidden selection:bg-amber-400 selection:text-red-950 flex flex-col justify-between" style="background: radial-gradient(circle at 50% 15%, rgb(61, 10, 11) 0%, rgb(28, 5, 6) 60%, rgb(18, 3, 3) 100%) rgb(26, 5, 5); min-height: 100vh;">
+<!-- 1. TOP ANNOUNCEMENT BAR -->
+<div class="bg-gradient-to-r from-[#6e0d13] via-[#a1161d] to-[#6e0d13] border-b border-amber-500/25 py-1 px-4 text-center text-[11px] tracking-wider font-semibold text-amber-200 flex items-center justify-center gap-2 whitespace-nowrap">
+<span class="inline-block animate-pulse">🏮</span>
+<span class="">ƯU ĐÃI DOANH NGHIỆP: CHIẾT KHẤU ĐẾN 25% • MIỄN PHÍ IN LOGO KIM NHŨ &amp; THIỆP CHÚC MỪNG 2027</span>
+<span class="inline-block animate-pulse">🏮</span>
+</div>
+<!-- 2. MAIN HEADER & NAVBAR -->
+<header class="relative z-30 bg-[#5c0b11]/95 backdrop-blur-md border-b border-amber-500/20 px-6 lg:px-14 sticky top-0 transition-all shadow-xl py-2.5">
+<div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+<a class="flex items-center space-x-2.5 group shrink-0" data-purpose="brand-identity" href="#">
+<div class="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-500 via-amber-300 to-amber-100 flex items-center justify-center shadow-md shadow-amber-500/30 group-hover:scale-105 transition-transform duration-300">
+<i class="fa-solid fa-gift text-[#69090f] text-base"></i>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 whitespace-nowrap">
+<span class="text-xl lg:text-2xl font-black tracking-tight text-white font-serif-tet uppercase">EleGift</span>
+<span class="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-red-950 text-[10px] font-black tracking-wider uppercase shadow-md leading-none">TẾT 2027</span>
+</div>
+<span class="text-[10px] font-medium text-amber-300/80 tracking-widest uppercase">Quà Tết Cao Cấp</span>
+</div>
+</a>
+<nav class="hidden md:flex items-center space-x-5 lg:space-x-6 text-xs lg:text-sm font-semibold tracking-wide whitespace-nowrap shrink-0">
+<a class="text-red-100/90 hover:text-amber-300 transition py-1 whitespace-nowrap shrink-0" href="#">TRANG CHỦ</a>
+<a class="text-red-100/90 hover:text-amber-300 transition py-1 whitespace-nowrap shrink-0" href="#">HỘP QUÀ TẾT</a>
+<a class="text-red-100/90 hover:text-amber-300 transition py-1 whitespace-nowrap shrink-0" href="#">QUÀ DOANH NGHIỆP</a>
+<a class="text-red-100/90 hover:text-amber-300 transition py-1 whitespace-nowrap shrink-0" href="#">BỘ SƯU TẬP SƠN MÀI</a>
+<a class="text-red-100/90 hover:text-amber-300 transition py-1 whitespace-nowrap shrink-0" href="#">LIÊN HỆ</a>
+</nav>
+<div class="flex items-center gap-3 shrink-0">
+<div class="flex items-center gap-2 mr-0.5">
+<a aria-label="Tài khoản" class="relative w-8 h-8 rounded-full flex items-center justify-center text-amber-400 bg-amber-400/20 transition-colors border border-amber-400 shadow-md shadow-amber-500/25" href="#"><svg class="w-4 h-4" fill="none" stroke="#fbbf24" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+<a aria-label="Giỏ hàng" class="relative w-8 h-8 rounded-full flex items-center justify-center text-amber-300 hover:text-amber-100 hover:bg-amber-500/10 transition-colors border border-amber-400/30" href="#">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="absolute -top-1 -right-1 bg-amber-400 text-red-950 text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow border border-amber-200" id="header-cart-count">25</span>
+</a>
+</div>
+<a class="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs lg:text-sm font-bold tracking-wider text-red-950 bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 rounded-full hover:from-amber-200 hover:to-amber-400 shadow-md shadow-amber-500/25 transition-all duration-300 hover:shadow-amber-400/40 hover:-translate-y-0.5 whitespace-nowrap" href="#">
+<i class="fa-solid fa-phone-volume text-[11px]"></i>
+<span class="">TƯ VẤN QUÀ TẾT</span>
+</a>
+</div>
+</div>
+</header>
+<!-- 3. TOP HERO / BREADCRUMB SECTION -->
+<section class="relative bg-gradient-to-b from-[#5c0b11] via-[#750e17] to-[#4a080c] overflow-hidden pt-8 pb-12 border-b border-amber-600/20" style="background: linear-gradient(rgba(61, 10, 11, 0.9) 0%, rgba(38, 6, 7, 0.8) 60%, transparent 100%); border-bottom-color: rgba(245, 158, 11, 0.2);">
+<div class="absolute inset-0 radial-lantern-glow pointer-events-none"></div>
+<div class="absolute top-4 left-6 text-amber-500/20 text-5xl font-serif select-none hidden lg:block pointer-events-none">❖</div>
+<div class="absolute top-4 right-6 text-amber-500/20 text-5xl font-serif select-none hidden lg:block pointer-events-none">❖</div>
+<div class="relative max-w-7xl mx-auto px-6 lg:px-12 z-10">
+<div class="flex items-center gap-2 text-xs text-amber-200/70 mb-5"><a class="hover:text-amber-300 transition-colors" href="#">Trang Chủ</a>
+<span class="">/</span>
+<span class="text-amber-300 font-semibold">Tài Khoản</span></div>
+<div>
+<h1 class="text-2xl lg:text-3xl font-bold font-serif-tet gold-gradient-text tracking-wide mb-2 uppercase">
+                    QUẢN LÝ TÀI KHOẢN &amp; ĐƠN QUÀ DOANH NGHIỆP
+                </h1>
+<p class="text-xs md:text-sm text-amber-100/70">
+                    Theo dõi tiến độ đóng gói, vận chuyển hỏa tốc và tải hóa đơn tài chính cho các set quà Tết Đinh Mùi 2027.
+                </p>
+</div>
+</div>
+</section>
+<!-- 4. MAIN CONTENT (2 COLUMNS) -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-grow relative z-10">
+<!-- Two Columns Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+<!-- COLUMN 1: LEFT SIDEBAR MENU (1/4 screen) -->
+<aside class="lg:col-span-1 bg-[#4a0d0d]/70 backdrop-blur-md border border-amber-500/25 rounded-2xl p-5 shadow-xl space-y-6">
+<!-- User Profile Card -->
+<div class="flex items-center space-x-4 pb-5 border-b border-amber-500/20">
+<div class="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-amber-200 p-0.5 shadow-md flex-shrink-0">
+<div class="w-full h-full rounded-full bg-[#380606] flex items-center justify-center overflow-hidden">
+<span class="font-serif-tet font-bold text-amber-300 text-lg">NA</span>
+</div>
+</div>
+<div class="overflow-hidden">
+<div class="flex items-center space-x-1.5">
+<h2 class="font-bold text-white text-base truncate">Nguyễn Văn A</h2>
+<i class="fa-solid fa-circle-check text-amber-400 text-xs" title="Tài khoản VIP Đã Xác Minh"></i>
+</div>
+<p class="text-xs text-amber-300/80 font-medium">Quản lý thu mua</p>
+<span class="inline-block mt-1 bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-semibold">
+                            Tập Đoàn Vingroup
+                        </span>
+</div>
+</div>
+<!-- Navigation List -->
+<nav class="space-y-1.5 text-sm font-medium">
+<!-- 📦 Lịch sử đơn hàng (Active) -->
+<a class="flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500/25 to-amber-500/5 text-amber-300 border-l-4 border-amber-400 font-semibold shadow-inner transition-all" href="#">
+<div class="flex items-center space-x-3">
+<i class="fa-solid fa-box-archive text-amber-400 w-5 text-center"></i>
+<span class="">Lịch sử đơn hàng</span>
+</div>
+<span class="bg-amber-400 text-red-950 text-[11px] font-black px-2 py-0.5 rounded-full">3</span>
+</a>
+<!-- 👤 Thông tin tài khoản & Doanh nghiệp -->
+<a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-100/75 hover:text-amber-300 hover:bg-red-900/40 transition-colors" href="#">
+<i class="fa-solid fa-id-card text-amber-400/80 w-5 text-center"></i>
+<span class="">Thông tin &amp; Doanh nghiệp</span>
+</a>
+<!-- 📍 Sổ địa chỉ nhận quà -->
+<a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-100/75 hover:text-amber-300 hover:bg-red-900/40 transition-colors" href="#">
+<i class="fa-solid fa-map-location-dot text-amber-400/80 w-5 text-center"></i>
+<span class="">Sổ địa chỉ nhận quà</span>
+</a>
+<!-- 📄 Yêu cầu hóa đơn VAT & In logo -->
+<a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-amber-100/75 hover:text-amber-300 hover:bg-red-900/40 transition-colors" href="#">
+<i class="fa-solid fa-file-invoice-dollar text-amber-400/80 w-5 text-center"></i>
+<span class="">Hóa đơn VAT &amp; In logo</span>
+</a>
+<!-- Membership Tier Info Box -->
+<div class="p-3.5 my-3 rounded-xl bg-gradient-to-br from-amber-950/40 to-red-950/60 border border-amber-500/20 text-xs space-y-1.5">
+<div class="flex items-center justify-between text-amber-300 font-bold">
+<span class="">✨ Hạng B2B Gold</span>
+<span class="text-amber-200">Chiết khấu 20%</span>
+</div>
+<p class="text-[11px] text-amber-100/60 leading-relaxed">
+                            Đã tích lũy: 125/150 hộp quà. Đặt thêm 25 hộp để nâng cấp hạng Bạch Kim (Chiết khấu 25%).
+                        </p>
+<div class="w-full bg-red-950 rounded-full h-1.5 overflow-hidden">
+<div class="bg-gradient-to-r from-amber-500 to-yellow-300 h-1.5 rounded-full" style="width: 82%"></div>
+</div>
+</div>
+<div class="pt-2 border-t border-amber-500/15">
+<!-- 🚪 Đăng xuất tài khoản -->
+<a class="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-300/80 hover:text-red-200 hover:bg-red-900/40 transition-colors" href="#">
+<i class="fa-solid fa-arrow-right-from-bracket text-red-400 w-5 text-center"></i>
+<span class="">Đăng xuất tài khoản</span>
+</a>
+</div>
+</nav>
+</aside>
+<!-- COLUMN 2: RIGHT CONTENT - ORDER HISTORY (3/4 screen) -->
+<section class="lg:col-span-3 space-y-6">
+<!-- Status Filter Tabs -->
+<div class="bg-[#4a0d0d]/60 backdrop-blur-md border border-amber-500/20 rounded-2xl p-2 flex flex-wrap gap-2 text-xs md:text-sm font-semibold">
+<button class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-red-950 font-bold shadow-md transition-all">
+                        Tất cả đơn (3)
+                    </button>
+<button class="px-4 py-2.5 rounded-xl text-amber-200/80 hover:text-amber-300 hover:bg-red-900/40 transition-all">
+                        Đang đóng gói (1)
+                    </button>
+<button class="px-4 py-2.5 rounded-xl text-amber-200/80 hover:text-amber-300 hover:bg-red-900/40 transition-all">
+                        Đang vận chuyển (1)
+                    </button>
+<button class="px-4 py-2.5 rounded-xl text-amber-200/80 hover:text-amber-300 hover:bg-red-900/40 transition-all">
+                        Đã giao thành công (1)
+                    </button>
+<button class="px-4 py-2.5 rounded-xl text-amber-200/80 hover:text-amber-300 hover:bg-red-900/40 transition-all">
+                        Đã hủy (0)
+                    </button>
+</div>
+<!-- ORDERS LIST -->
+<div class="space-y-5">
+<!-- ORDER CARD 1: Đang vận chuyển hỏa tốc -->
+<div class="bg-[#4a0d0d]/80 border border-amber-500/30 rounded-2xl p-6 shadow-xl hover:border-amber-400/50 transition-all space-y-5">
+<!-- Order Card Header -->
+<div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-amber-500/20">
+<div class="flex items-center space-x-3">
+<span class="font-serif-tet font-extrabold text-lg text-amber-300 tracking-wider">#EG-882027</span>
+<span class="text-xs text-amber-200/60 font-medium">• Đặt ngày: 18/01/2027 (14:30)</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs px-3 py-1 rounded-full font-bold flex items-center space-x-1.5 shadow-[0_0_10px_rgba(251,191,36,0.2)]">
+<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+<span class="">🚚 Đang vận chuyển hỏa tốc</span>
+</span>
+</div>
+</div>
+<!-- Order Card Body: Products list -->
+<div class="space-y-4">
+<!-- Product Item 1 -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 rounded-xl bg-red-950/40 border border-amber-500/10">
+<div class="flex items-center space-x-4">
+<div class="w-16 h-16 rounded-lg bg-cover bg-center border border-amber-500/30 flex-shrink-0 shadow-md relative" style="background-image: url('https://lh3.googleusercontent.com/aida/AEtjO1VpqFhLAB-_-qHQ2LpPEnqidegNHzaix0pG4cu9WUOmV_hlSuT6F-ZjhynYdUFg5wFh9k9xMY4SlwdiinAUvEsOgcljPXuDxu-nZMuSrQTlGy7GrMa35a1BsVINILNy3pYf0xR5yxhKOe9RiwmeHtxL5ZjAInMoMkBuBHeeHhcaZ5wwIO10JRfOL9_1gtb_wms8PP4kk5tjd2jOZegHVDfTCVKQxKlnVzRcOFy5g1kTwaixIvJxjBIt_lw')">
+<span class="absolute -top-1 -right-1 bg-amber-500 text-red-950 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">50</span>
+</div>
+<div>
+<h3 class="font-bold text-white text-base">Hộp Gỗ Sơn Mài "Vạn Sự Khởi Sắc"</h3>
+<p class="text-xs text-amber-200/70">Phối ngẫu: Yến Sào Khánh Hòa, Hạt Macca Úc, Vang Nổ Bordeaux &amp; Trà Cổ Thụ</p>
+<div class="flex flex-wrap items-center gap-2 mt-1">
+<span class="text-[11px] bg-red-900/60 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded">
+                                                ✨ Đã in logo Vingroup ép kim nhũ vàng
+                                            </span>
+<span class="text-[11px] bg-red-900/60 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded">
+                                                ✉️ Kèm 50 thiệp chúc mừng riêng
+                                            </span>
+</div>
+</div>
+</div>
+<div class="text-right sm:flex-shrink-0">
+<span class="text-xs text-amber-200/60 block line-through">1.450.000 ₫</span>
+<span class="font-bold text-amber-300 text-base">1.160.000 ₫</span>
+<span class="text-[11px] text-amber-200/80 block">x 50 bộ</span>
+</div>
+</div>
+</div>
+<!-- Order Financial Summary Bar -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-3 text-sm">
+<div class="text-xs text-amber-200/70 space-y-0.5">
+<div class=""><i class="fa-solid fa-location-dot text-amber-400 mr-1.5"></i> Giao đến: Tòa tháp Symphony, Chu Huy Mân, Long Biên, Hà Nội</div>
+<div class=""><i class="fa-solid fa-clock text-amber-400 mr-1.5"></i> Dự kiến giao: 20/01/2027 (Trước 23 Tháng Chạp)</div>
+</div>
+<div class="text-right">
+<span class="text-xs text-amber-200/70 block">Tổng thanh toán (Chiết khấu B2B 20% &amp; VAT 8%):</span>
+<span class="font-serif-tet font-black text-2xl gold-gradient-text tracking-wide">62.640.000 ₫</span>
+</div>
+</div>
+<!-- Order Card Footer: Action Buttons -->
+<div class="pt-4 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center space-x-2 text-xs text-amber-300/80">
+<i class="fa-solid fa-shield-halved text-amber-400"></i>
+<span class="">Cam kết bảo hiểm vận chuyển vỡ hỏng 100%</span>
+</div>
+<div class="flex items-center space-x-3">
+<button class="px-4 py-2 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-amber-500/30 text-amber-200 text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+<i class="fa-solid fa-phone text-amber-400"></i>
+<span class="">Liên hệ hỗ trợ</span>
+</button>
+<button class="px-4 py-2 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-amber-500/30 text-amber-200 text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+<i class="fa-solid fa-file-pdf text-amber-400"></i>
+<span class="">Tải hóa đơn VAT</span>
+</button>
+<button class="btn-gold px-4 py-2 rounded-xl text-xs font-bold tracking-wide flex items-center space-x-1.5 shadow-md">
+<i class="fa-solid fa-eye text-red-950"></i>
+<span class="">Xem chi tiết đơn</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ORDER CARD 2: Đang đóng gói & chuẩn bị xuất xưởng -->
+<div class="bg-[#4a0d0d]/80 border border-amber-500/30 rounded-2xl p-6 shadow-xl hover:border-amber-400/50 transition-all space-y-5">
+<!-- Order Card Header -->
+<div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-amber-500/20">
+<div class="flex items-center space-x-3">
+<span class="font-serif-tet font-extrabold text-lg text-amber-300 tracking-wider">#EG-881945</span>
+<span class="text-xs text-amber-200/60 font-medium">• Đặt ngày: 15/01/2027 (09:15)</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="bg-yellow-500/20 border border-yellow-400/40 text-yellow-300 text-xs px-3 py-1 rounded-full font-bold flex items-center space-x-1.5">
+<i class="fa-solid fa-boxes-packing text-yellow-400"></i>
+<span class="">📦 Đang kiểm định &amp; Đóng gói sơn mài</span>
+</span>
+</div>
+</div>
+<!-- Order Card Body: Products list -->
+<div class="space-y-4">
+<!-- Product Item 1 -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 rounded-xl bg-red-950/40 border border-amber-500/10">
+<div class="flex items-center space-x-4">
+<div class="w-16 h-16 rounded-lg bg-cover bg-center border border-amber-500/30 flex-shrink-0 shadow-md relative" style="background-image: url('https://lh3.googleusercontent.com/aida/AEtjO1XxDYOKw4s3-RPthpfuvOl6-PbU0OVWpfQO4L3J4Qoru5aA7K0cXOEEtOUHJPDuguqPAhag4rGiFcYD6ifDjlhtol2eWgcEvUxJbTbepoueYHmptFtLUHH6YO6TwK1tUqIj0MbaiL7l7xpM8oouW94KvlLriL4G_YIck4sVKnq4WAE8vraYt_695BM2fzj-VXWqNQQ3hDdJ28qefXtZ9lkZIF0_McbDY68K3iPzzOFTteEtvYmmCNHNBqgo')">
+<span class="absolute -top-1 -right-1 bg-amber-500 text-red-950 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">30</span>
+</div>
+<div>
+<h3 class="font-bold text-white text-base">Rương Gỗ Tự Nhiên "Long Phụng Hòa Minh"</h3>
+<p class="text-xs text-amber-200/70">Dòng Rượu Ngoại Whisky 18 Năm, Tổ Yến Tinh Chế &amp; Trà Shan Tuyết Thượng Hạng</p>
+<div class="flex flex-wrap items-center gap-2 mt-1">
+<span class="text-[11px] bg-red-900/60 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded">
+                                                🏷️ Khắc Laser tên từng đối tác VIP trên nắp rương
+                                            </span>
+</div>
+</div>
+</div>
+<div class="text-right sm:flex-shrink-0">
+<span class="text-xs text-amber-200/60 block line-through">2.850.000 ₫</span>
+<span class="font-bold text-amber-300 text-base">2.280.000 ₫</span>
+<span class="text-[11px] text-amber-200/80 block">x 30 bộ</span>
+</div>
+</div>
+</div>
+<!-- Order Financial Summary Bar -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-3 text-sm">
+<div class="text-xs text-amber-200/70 space-y-0.5">
+<div class=""><i class="fa-solid fa-location-dot text-amber-400 mr-1.5"></i> Giao đến: Vincom Center, 72 Lê Thánh Tôn, Bến Nghé, Quận 1, TP.HCM</div>
+<div class=""><i class="fa-solid fa-clock text-amber-400 mr-1.5"></i> Lịch xuất kho: 21/01/2027 (Giao hẹn giờ)</div>
+</div>
+<div class="text-right">
+<span class="text-xs text-amber-200/70 block">Tổng thanh toán (Chiết khấu B2B 20% &amp; VAT 8%):</span>
+<span class="font-serif-tet font-black text-2xl gold-gradient-text tracking-wide">73.872.000 ₫</span>
+</div>
+</div>
+<!-- Order Card Footer: Action Buttons -->
+<div class="pt-4 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center space-x-2 text-xs text-amber-300/80">
+<i class="fa-solid fa-clipboard-check text-amber-400"></i>
+<span class="">Đã duyệt maket in khắc logo 100%</span>
+</div>
+<div class="flex items-center space-x-3">
+<button class="px-4 py-2 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-amber-500/30 text-amber-200 text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+<i class="fa-solid fa-location-arrow text-amber-400"></i>
+<span class="">Thay đổi địa chỉ giao</span>
+</button>
+<button class="px-4 py-2 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-amber-500/30 text-amber-200 text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+<i class="fa-solid fa-file-invoice text-amber-400"></i>
+<span class="">Tải hóa đơn VAT</span>
+</button>
+<button class="btn-gold px-4 py-2 rounded-xl text-xs font-bold tracking-wide flex items-center space-x-1.5 shadow-md">
+<i class="fa-solid fa-eye text-red-950"></i>
+<span class="">Xem chi tiết đơn</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ORDER CARD 3: Đã giao thành công -->
+<div class="bg-[#4a0d0d]/80 border border-amber-500/30 rounded-2xl p-6 shadow-xl hover:border-amber-400/50 transition-all space-y-5 opacity-90 hover:opacity-100">
+<!-- Order Card Header -->
+<div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-amber-500/20">
+<div class="flex items-center space-x-3">
+<span class="font-serif-tet font-extrabold text-lg text-amber-300 tracking-wider">#EG-880211</span>
+<span class="text-xs text-amber-200/60 font-medium">• Đặt ngày: 05/01/2027 (11:00)</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold flex items-center space-x-1.5">
+<i class="fa-solid fa-circle-check text-emerald-400"></i>
+<span class="">Đã giao thành công &amp; Nghiệm thu</span>
+</span>
+</div>
+</div>
+<!-- Order Card Body: Products list -->
+<div class="space-y-4">
+<!-- Product Item 1 -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 rounded-xl bg-red-950/40 border border-amber-500/10">
+<div class="flex items-center space-x-4">
+<div class="w-16 h-16 rounded-lg bg-cover bg-center border border-amber-500/30 flex-shrink-0 shadow-md relative" style="background-image: url('https://lh3.googleusercontent.com/aida/AEtjO1VpqFhLAB-_-qHQ2LpPEnqidegNHzaix0pG4cu9WUOmV_hlSuT6F-ZjhynYdUFg5wFh9k9xMY4SlwdiinAUvEsOgcljPXuDxu-nZMuSrQTlGy7GrMa35a1BsVINILNy3pYf0xR5yxhKOe9RiwmeHtxL5ZjAInMoMkBuBHeeHhcaZ5wwIO10JRfOL9_1gtb_wms8PP4kk5tjd2jOZegHVDfTCVKQxKlnVzRcOFy5g1kTwaixIvJxjBIt_lw')">
+<span class="absolute -top-1 -right-1 bg-amber-500 text-red-950 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">15</span>
+</div>
+<div>
+<h3 class="font-bold text-white text-base">Hộp Sơn Mài Thượng Hạng "Khai Xuân Như Ý"</h3>
+<p class="text-xs text-amber-200/70">Đơn quà tặng ngoại giao - Chi nhánh Đà Nẵng</p>
+</div>
+</div>
+<div class="text-right sm:flex-shrink-0">
+<span class="font-bold text-amber-300 text-base">1.850.000 ₫</span>
+<span class="text-[11px] text-amber-200/80 block">x 15 bộ</span>
+</div>
+</div>
+</div>
+<!-- Order Financial Summary Bar -->
+<div class="flex flex-wrap items-center justify-between gap-3 pt-3 text-sm">
+<div class="text-xs text-amber-200/70 space-y-0.5">
+<div class=""><i class="fa-solid fa-location-dot text-amber-400 mr-1.5"></i> Đã nhận tại: 45 Bạch Đằng, Q. Hải Châu, TP. Đà Nẵng</div>
+<div class=""><i class="fa-solid fa-calendar-check text-emerald-400 mr-1.5"></i> Đã ký biên bản bàn giao: 10/01/2027</div>
+</div>
+<div class="text-right">
+<span class="text-xs text-amber-200/70 block">Tổng thanh toán:</span>
+<span class="font-serif-tet font-black text-2xl gold-gradient-text tracking-wide">29.970.000 ₫</span>
+</div>
+</div>
+<!-- Order Card Footer: Action Buttons -->
+<div class="pt-4 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center space-x-2 text-xs text-emerald-300">
+<i class="fa-solid fa-file-circle-check"></i>
+<span class="">Hóa đơn điện tử VAT đã gửi qua email kế toán</span>
+</div>
+<div class="flex items-center space-x-3">
+<button class="px-4 py-2 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-amber-500/30 text-amber-200 text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+<i class="fa-solid fa-rotate-right text-amber-400"></i>
+<span class="">Đặt lại đơn này</span>
+</button>
+<button class="px-4 py-2 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-amber-500/30 text-amber-200 text-xs font-semibold flex items-center space-x-1.5 transition-colors">
+<i class="fa-solid fa-download text-amber-400"></i>
+<span class="">Tải hóa đơn VAT</span>
+</button>
+<button class="btn-gold px-4 py-2 rounded-xl text-xs font-bold tracking-wide flex items-center space-x-1.5 shadow-md">
+<i class="fa-solid fa-eye text-red-950"></i>
+<span class="">Xem chi tiết đơn</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- 5. VIP / B2B FAST SUPPORT BANNER -->
+<div class="mt-12 bg-gradient-to-r from-red-950 via-[#4a0d0d] to-red-950 border border-amber-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+<div class="absolute -right-8 -bottom-8 text-amber-500/10 text-9xl font-serif select-none pointer-events-none">❖</div>
+<div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center space-x-5">
+<div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center text-red-950 text-2xl font-black shadow-lg flex-shrink-0">
+<i class="fa-solid fa-headset"></i>
+</div>
+<div>
+<div class="flex items-center space-x-2">
+<h3 class="font-serif-tet font-bold text-xl text-white">Chăm Sóc &amp; Điều Phối Đơn Hàng Doanh Nghiệp 24/7</h3>
+<span class="bg-amber-400 text-red-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">VIP Hotline</span>
+</div>
+<p class="text-xs text-amber-200/80 mt-1 max-w-2xl leading-relaxed">
+                            Cần gấp thay đổi tiến độ giao nhận, bổ sung địa chỉ chi nhánh toàn quốc hoặc xuất thêm hợp đồng kinh tế? Đội ngũ cố vấn B2B EleGift luôn túc trực phục vụ riêng cho doanh nghiệp của bạn.
+                        </p>
+</div>
+</div>
+<div class="flex items-center space-x-4 flex-shrink-0 w-full md:w-auto justify-end">
+<a class="btn-gold px-6 py-3.5 rounded-full text-xs font-bold tracking-wider uppercase flex items-center space-x-2 shadow-lg" href="tel:19008888">
+<i class="fa-solid fa-phone text-sm"></i>
+<span class="">Hotline: 1900 8888 (Nhánh 1)</span>
+</a>
+<a class="px-5 py-3.5 rounded-full bg-red-900/70 hover:bg-red-800/80 border border-amber-400/50 text-amber-200 text-xs font-bold tracking-wide flex items-center space-x-2 transition-all" href="#">
+<i class="fa-brands fa-zalo text-sm"></i>
+<span class="">Chat Zalo B2B</span>
+</a>
+</div>
+</div>
+</div>
+</main>
+<!-- 6. FLOATING RIGHT CONTACT BAR -->
+<div class="fixed right-3 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center space-y-3">
+<!-- 1. AI Chọn Quà Floating Button -->
+<a class="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-300 via-amber-400 to-yellow-500 text-red-950 flex items-center justify-center shadow-[0_0_15px_rgba(251,191,36,0.5)] hover:scale-110 transition-transform group relative border border-amber-200/60" href="#" title="AI Chọn Quà Tết">
+<span class="text-base select-none">✨</span>
+<span class="absolute right-14 bg-red-950/90 backdrop-blur-md text-amber-300 border border-amber-500/30 text-xs px-2.5 py-1 rounded-lg opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap shadow-xl pointer-events-none">
+        AI Chọn Quà Tết
+    </span>
+</a>
+<!-- 2. Hotline Button -->
+<a class="w-11 h-11 rounded-full bg-gradient-to-tr from-red-600 via-[#a1161d] to-amber-500 text-white flex items-center justify-center shadow-md hover:scale-110 transition-transform group relative border border-amber-400/40" href="tel:19008866" title="Hotline 24/7: 1900 8866">
+<i class="fa-solid fa-phone-volume text-sm animate-pulse"></i>
+<span class="absolute right-14 bg-red-950/90 backdrop-blur-md text-amber-300 border border-amber-500/30 text-xs px-2.5 py-1 rounded-lg opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap shadow-xl pointer-events-none">
+        Hotline 24/7: 1900 8866
+    </span>
+</a>
+<!-- 3. Zalo Button -->
+<a class="w-11 h-11 rounded-full bg-gradient-to-tr from-[#0084FF] to-[#00C6FF] text-white flex items-center justify-center shadow-md hover:scale-110 transition-transform group relative border border-blue-300/40" href="#" title="Chat Zalo tư vấn">
+<span class="font-bold text-xs select-none">Zalo</span>
+<span class="absolute right-14 bg-red-950/90 backdrop-blur-md text-amber-300 border border-amber-500/30 text-xs px-2.5 py-1 rounded-lg opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap shadow-xl pointer-events-none">
+        Chat Zalo tư vấn
+    </span>
+</a>
+<!-- 4. Facebook Button -->
+<a class="w-11 h-11 rounded-full bg-gradient-to-tr from-[#1877F2] to-[#0d5ac1] text-white flex items-center justify-center shadow-md hover:scale-110 transition-transform group relative border border-blue-400/30" href="#" title="Fanpage Facebook">
+<i class="fa-brands fa-facebook-f text-sm"></i>
+<span class="absolute right-14 bg-red-950/90 backdrop-blur-md text-amber-300 border border-amber-500/30 text-xs px-2.5 py-1 rounded-lg opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap shadow-xl pointer-events-none">
+        Fanpage Facebook
+    </span>
+</a>
+<!-- 5. Messenger Button -->
+<a class="w-11 h-11 rounded-full bg-gradient-to-tr from-[#0084FF] via-[#00B2FF] to-[#00C6FF] text-white flex items-center justify-center shadow-md hover:scale-110 transition-transform group relative border border-cyan-300/30" href="#" title="Chat Messenger">
+<i class="fa-brands fa-facebook-messenger text-sm"></i>
+<span class="absolute right-14 bg-red-950/90 backdrop-blur-md text-amber-300 border border-amber-500/30 text-xs px-2.5 py-1 rounded-lg opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap shadow-xl pointer-events-none">
+        Chat Messenger
+    </span>
+</a>
+</div>
+<!-- 7. FOOTER CHUẨN HỆ THỐNG ELEGIFT -->
+<footer class="bg-[#1f0303] border-t border-amber-500/20 pt-12 pb-6 mt-16 text-amber-100/70 text-xs">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+<!-- Brand Info -->
+<div class="space-y-4">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 p-0.5">
+<div class="w-full h-full bg-[#2b0505] rounded-full flex items-center justify-center">
+<i class="fa-solid fa-gift text-amber-400 text-sm"></i>
+</div>
+</div>
+<div>
+<span class="font-serif-tet font-black text-lg text-white tracking-widest">ELEGIFT</span>
+<span class="text-[9px] block text-amber-400 font-bold tracking-widest uppercase">Tân Xuân Đinh Mùi 2027</span>
+</div>
+</div>
+<p class="text-amber-100/60 leading-relaxed text-[11px]">
+                    Đơn vị tiên phong sáng tạo bộ sưu tập quà Tết sơn mài, gốm mộc và phong vị thảo mộc tự nhiên thượng hạng cho hàng ngàn tập đoàn, doanh nghiệp Việt.
+                </p>
+<div class="pt-1">
+<span class="text-amber-300 font-bold block text-xs">TỔNG ĐÀI TƯ VẤN DOANH NGHIỆP:</span>
+<span class="text-base font-extrabold text-amber-400 font-serif-tet">1900 8888</span>
+<span class="text-amber-200/60 text-[11px] block">• 0912 345 678</span>
+</div>
+</div>
+<!-- Showrooms -->
+<div class="space-y-3">
+<h3 class="font-serif-tet font-bold text-amber-300 uppercase tracking-wider text-xs">📍 HỆ THỐNG SHOWROOM</h3>
+<div class="space-y-2 text-[11px]">
+<div>
+<strong class="text-white block">Hà Nội:</strong>
+<span class="">88 Phố Huế, Q. Hai Bà Trưng</span>
+</div>
+<div>
+<strong class="text-white block">TP. Hồ Chí Minh:</strong>
+<span class="">126 Nguyễn Thị Minh Khai, Phường 6, Quận 3</span>
+</div>
+<div>
+<strong class="text-white block">Đà Nẵng:</strong>
+<span class="">45 Bạch Đằng, Q. Hải Châu</span>
+</div>
+</div>
+</div>
+<!-- Policies -->
+<div class="space-y-3">
+<h3 class="font-serif-tet font-bold text-amber-300 uppercase tracking-wider text-xs">🛡️ CHÍNH SÁCH &amp; HỖ TRỢ</h3>
+<ul class="space-y-1.5 text-[11px]">
+<li class=""><a class="hover:text-amber-300 transition-colors" href="#">Chính sách đặt cọc &amp; chiết khấu B2B</a></li>
+<li class=""><a class="hover:text-amber-300 transition-colors" href="#">Dịch vụ in ấn logo &amp; khắc kim nhũ</a></li>
+<li class=""><a class="hover:text-amber-300 transition-colors" href="#">Vận chuyển hỏa tốc &amp; giao nhiều điểm</a></li>
+<li class=""><a class="hover:text-amber-300 transition-colors" href="#">Cam kết chất lượng &amp; đổi trả 100%</a></li>
+<li class=""><a class="hover:text-amber-300 transition-colors" href="#">Chính sách bảo mật thông tin dự án</a></li>
+</ul>
+</div>
+<!-- Working Hours & Payment -->
+<div class="space-y-4">
+<div>
+<h3 class="font-serif-tet font-bold text-amber-300 uppercase tracking-wider text-xs mb-2">🕒 THỜI GIAN PHỤC VỤ</h3>
+<p class="text-[11px] text-amber-100/70">
+                        Từ Thứ Hai đến Chủ Nhật: <strong class="text-white">08:00 - 21:30</strong><br>
+<span class="text-amber-300/90">(Phục vụ xuyên Tết Nguyên Đán 2027)</span>
+</p>
+</div>
+<div>
+<h3 class="font-serif-tet font-bold text-amber-300 uppercase tracking-wider text-xs mb-2">PHƯƠNG THỨC THANH TOÁN:</h3>
+<div class="flex flex-wrap gap-2 text-[10px]">
+<span class="px-2.5 py-1 rounded bg-[#380606] border border-amber-500/20 text-amber-200">VISA / MASTER</span>
+<span class="px-2.5 py-1 rounded bg-[#380606] border border-amber-500/20 text-amber-200">CHUYỂN KHOẢN</span>
+<span class="px-2.5 py-1 rounded bg-[#380606] border border-amber-500/20 text-amber-200">VNPAY-QR</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Copyright Bar -->
+<div class="border-t border-amber-500/10 pt-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-[11px] text-amber-200/50">
+<div class="">
+                © 2027 EleGift. Bản quyền thuộc về Công ty Quà Tặng Cao Cấp EleGift Việt Nam.
+            </div>
+<div class="mt-2 sm:mt-0 italic font-serif">
+                Tuyệt tác quà tết cổ truyền &amp; phong vị tân xuân Đinh Mùi.
+            </div>
+</div>
+</footer>
+
+
+
+
+</body></html>
