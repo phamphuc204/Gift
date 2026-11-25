@@ -1,5 +1,0 @@
-(globalThis["TURBOPACK_CHUNK_LISTS"] || (globalThis["TURBOPACK_CHUNK_LISTS"] = [])).push({
-    script: typeof document === "object" ? document.currentScript : undefined,
-    chunks: ["static/chunks/[root-of-the-server]__1v9_in71zw-re._.css","static/chunks/src_1hwb4qqtbia3v._.js","static/chunks/node_modules_next_dist_1ya_frw252jxv._.js","static/chunks/src_app_global-error_tsx_1511-6v-z1mcr._.js","static/chunks/src_presentation_views_CorporateView_tsx_1bdmwden_e9lg._.js","static/chunks/src_presentation_views_ContactView_tsx_0vlrgu_gln3q_._.js","static/chunks/src_presentation_views_ProductDetailView_tsx_0td-koj4oeyr7._.js","static/chunks/src_presentation_views_CartView_tsx_1_u9ap_6_-5_2._.js","static/chunks/src_presentation_views_CheckoutView_tsx_1_kw0vjlx1pr9._.js","static/chunks/src_presentation_views_AccountView_tsx_08u_vbc4agbql._.js","static/chunks/src_presentation_views_AIAdvisorView_tsx_0f4iy3lxelvdg._.js","static/chunks/src_presentation_views_AuthView_tsx_1v7b1mp5zn4rl._.js","static/chunks/src_presentation_views_0bdbuynyf_l3p._.js","static/chunks/src_app_page_tsx_1gecvfkkh4nqg._.js","static/chunks/node_modules_1d11kcin-b9on._.js"],
-    source: "entry"
-});
