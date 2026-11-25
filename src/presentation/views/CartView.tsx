@@ -22,7 +22,7 @@ export const CartView: React.FC = () => {
     navigateTo,
   } = useApp();
 
-  const [inputCoupon, setInputCoupon] = useState<string>(couponCode);
+  const [inputCoupon, setInputCoupon] = useState<string>('');
 
   const handleApplyCoupon = () => {
     applyCoupon(inputCoupon);
@@ -322,19 +322,33 @@ export const CartView: React.FC = () => {
                     </button>
                   </div>
 
-                  {cartTotals.isB2BDiscountActive && (
-                    <div className="mt-4 p-3.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-transparent flex items-start gap-3 border border-amber-500/20">
-                      <span className="text-base text-amber-300 leading-none mt-0.5">🏮</span>
-                      <div className="text-xs text-amber-200 leading-relaxed">
-                        <span className="font-bold text-amber-300">Đã kích hoạt ưu đãi doanh nghiệp:</span>{' '}
-                        Chiết khấu bậc thang{' '}
-                        <span className="font-extrabold text-amber-100 bg-amber-500/20 px-1.5 py-0.5 rounded">
-                          {cartTotals.discountPercentage}%
-                        </span>{' '}
-                        cho đơn hàng từ {cartTotals.totalBoxes >= 50 ? '50' : '20'} hộp trở lên (Đã áp dụng tự động cho giỏ hàng).
-                      </div>
+                  <div className="mt-4 p-3.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-transparent flex items-start gap-3 border border-amber-500/20">
+                    <span className="text-base text-amber-300 leading-none mt-0.5">
+                      🏮
+                    </span>
+
+                    <div className="text-xs text-amber-200 leading-relaxed">
+                      {couponApplied ? (
+                        <>
+                          <span className="font-bold text-emerald-400">
+                            Đã áp dụng mã ưu đãi {couponCode}:
+                          </span>
+                          {' '}Chiết khấu hiện tại là{' '}
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-bold text-amber-300">
+                            Chưa áp dụng mã ưu đãi:
+                          </span>
+                          {' '}Quý khách vẫn được hưởng chiết khấu doanh nghiệp theo số lượng đặt hàng (nếu đủ điều kiện). Mức chiết khấu hiện tại là{' '}
+                        </>
+                      )}
+
+                      <span className="font-extrabold text-amber-100 bg-amber-500/20 px-1.5 py-0.5 rounded">
+                        {cartTotals.discountPercentage}%
+                      </span>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* Assurance Bento Grid */}

@@ -19,7 +19,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$
 ;
 ;
 const CheckoutView = ()=>{
-    const { cartItems, cartTotals, placeOrder, navigateTo } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$application$2f$AppContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useApp"])();
+    const { cartItems, cartTotals, navigateTo, showToast, clearCart, couponCode, couponApplied } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$application$2f$AppContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useApp"])();
     const [form, setForm] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({
         recipientName: 'Nguyễn Hoàng Nam',
         phone: '0988 234 567',
@@ -40,27 +40,74 @@ const CheckoutView = ()=>{
     });
     const [isSubmitting, setIsSubmitting] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [completedOrderCode, setCompletedOrderCode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
-    const handleSubmit = (e)=>{
+    const [completedOrder, setCompletedOrder] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const handleSubmit = async (e)=>{
         e.preventDefault();
+        if (cartItems.length === 0) {
+            showToast('Giỏ hàng đang trống. Vui lòng chọn sản phẩm.', 'error');
+            return;
+        }
         setIsSubmitting(true);
-        setTimeout(()=>{
-            const order = placeOrder({
-                recipientName: form.recipientName,
-                phone: form.phone,
-                email: form.email,
-                shippingAddress: `${form.address}, ${form.district}, ${form.city}`,
-                deliveryCity: form.city,
-                hasVatInvoice: form.requireVat,
-                companyName: form.companyName,
-                taxCode: form.taxCode,
-                companyAddress: form.companyAddress,
-                invoiceEmail: form.invoiceEmail,
-                giftCardRequested: form.giftCard,
-                paymentMethod: form.paymentMethod
+        try {
+            // Lấy sessionId đã được AppContext lưu trong localStorage
+            const sessionId = localStorage.getItem('elegift_session_id');
+            if (!sessionId) {
+                throw new Error('Không tìm thấy phiên giỏ hàng. Vui lòng tải lại trang.');
+            }
+            // Gửi thông tin đặt hàng đến Backend
+            const response = await fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sessionId,
+                    // Thông tin người nhận
+                    recipientName: form.recipientName,
+                    phone: form.phone,
+                    email: form.email,
+                    // Địa chỉ giao hàng
+                    city: form.city,
+                    district: form.district,
+                    address: form.address,
+                    // Thời gian giao hàng
+                    deliveryTime: form.deliveryTime,
+                    // Hóa đơn VAT
+                    requireVat: form.requireVat,
+                    companyName: form.companyName,
+                    taxCode: form.taxCode,
+                    companyAddress: form.companyAddress,
+                    invoiceEmail: form.invoiceEmail,
+                    // Thiệp chúc Tết
+                    giftCard: form.giftCard,
+                    // Ghi chú
+                    customNotes: form.customNotes,
+                    // Thanh toán
+                    paymentMethod: form.paymentMethod,
+                    couponCode: couponApplied ? couponCode : undefined
+                })
             });
-            setIsSubmitting(false);
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Đặt hàng thất bại. Vui lòng thử lại.');
+            }
+            // Backend trả về thông tin đơn hàng
+            const order = result.data?.order ?? result.data;
+            if (!order?.orderCode) {
+                throw new Error('Đơn hàng đã được xử lý nhưng không nhận được mã đơn.');
+            }
+            // Xóa giỏ hàng trên Frontend sau khi Backend xác nhận thành công
+            clearCart();
+            setCompletedOrder(order);
+            // Cập nhật giao diện thành công
             setCompletedOrderCode(order.orderCode);
-        }, 700);
+            showToast('Đặt hàng thành công!', 'success');
+        } catch (error) {
+            console.error('Lỗi đặt hàng:', error);
+            showToast(error instanceof Error ? error.message : 'Có lỗi xảy ra khi đặt hàng.', 'error');
+        } finally{
+            setIsSubmitting(false);
+        }
     };
     if (completedOrderCode) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -74,12 +121,12 @@ const CheckoutView = ()=>{
                             className: "fa-solid fa-check"
                         }, void 0, false, {
                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                            lineNumber: 68,
+                            lineNumber: 140,
                             columnNumber: 13
                         }, ("TURBOPACK compile-time value", void 0))
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 67,
+                        lineNumber: 139,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -87,7 +134,7 @@ const CheckoutView = ()=>{
                         children: "ĐẶT HÀNG THÀNH CÔNG • MÙA TẾT ĐINH MÙI 2027"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 70,
+                        lineNumber: 142,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -95,7 +142,7 @@ const CheckoutView = ()=>{
                         children: "Thành Kính Tri Ân Quý Doanh Nghiệp!"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 73,
+                        lineNumber: 145,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -108,14 +155,14 @@ const CheckoutView = ()=>{
                                 children: completedOrderCode
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                lineNumber: 78,
+                                lineNumber: 150,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             ". Chuyên viên tư vấn VIP EleGift sẽ liên hệ xác nhận lịch giao nhận và mẫu thiệp chúc Tết trong vòng 15 phút."
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 76,
+                        lineNumber: 148,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -129,7 +176,7 @@ const CheckoutView = ()=>{
                                         children: "Người nhận:"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 84,
+                                        lineNumber: 156,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -137,13 +184,13 @@ const CheckoutView = ()=>{
                                         children: form.recipientName
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 85,
+                                        lineNumber: 157,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                lineNumber: 83,
+                                lineNumber: 155,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -154,7 +201,7 @@ const CheckoutView = ()=>{
                                         children: "Số điện thoại:"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 88,
+                                        lineNumber: 160,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -162,13 +209,13 @@ const CheckoutView = ()=>{
                                         children: form.phone
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 89,
+                                        lineNumber: 161,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                lineNumber: 87,
+                                lineNumber: 159,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -179,7 +226,7 @@ const CheckoutView = ()=>{
                                         children: "Địa chỉ giao:"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 92,
+                                        lineNumber: 164,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -187,13 +234,13 @@ const CheckoutView = ()=>{
                                         children: form.address
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 93,
+                                        lineNumber: 165,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                lineNumber: 91,
+                                lineNumber: 163,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -204,27 +251,27 @@ const CheckoutView = ()=>{
                                         children: "Tổng thanh toán:"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 96,
+                                        lineNumber: 168,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         className: "font-bold text-amber-300 font-serif-tet",
-                                        children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(cartTotals.grandTotal || 33525000)
+                                        children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(completedOrder?.grandTotal ?? 0)
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 97,
+                                        lineNumber: 169,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                lineNumber: 95,
+                                lineNumber: 167,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 82,
+                        lineNumber: 154,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -238,14 +285,14 @@ const CheckoutView = ()=>{
                                         className: "fa-solid fa-box-archive mr-2"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 108,
+                                        lineNumber: 180,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     "Xem Quản Lý Đơn Hàng"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                lineNumber: 104,
+                                lineNumber: 176,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -254,24 +301,24 @@ const CheckoutView = ()=>{
                                 children: "Về Trang Chủ"
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                lineNumber: 111,
+                                lineNumber: 183,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 103,
+                        lineNumber: 175,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                lineNumber: 66,
+                lineNumber: 138,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0))
         }, void 0, false, {
             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-            lineNumber: 65,
+            lineNumber: 137,
             columnNumber: 7
         }, ("TURBOPACK compile-time value", void 0));
     }
@@ -288,7 +335,7 @@ const CheckoutView = ()=>{
                         className: "absolute inset-0 radial-lantern-glow pointer-events-none"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 133,
+                        lineNumber: 205,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -296,7 +343,7 @@ const CheckoutView = ()=>{
                         children: "❖"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 134,
+                        lineNumber: 206,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -304,7 +351,7 @@ const CheckoutView = ()=>{
                         children: "❖"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 137,
+                        lineNumber: 209,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -321,7 +368,7 @@ const CheckoutView = ()=>{
                                             children: "Trang Chủ"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 144,
+                                            lineNumber: 216,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -329,7 +376,7 @@ const CheckoutView = ()=>{
                                             children: "/"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 150,
+                                            lineNumber: 222,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -338,7 +385,7 @@ const CheckoutView = ()=>{
                                             children: "Giỏ Hàng"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 151,
+                                            lineNumber: 223,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -346,7 +393,7 @@ const CheckoutView = ()=>{
                                             children: "/"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 157,
+                                            lineNumber: 229,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -354,13 +401,13 @@ const CheckoutView = ()=>{
                                             children: "Thanh Toán Đơn Hàng"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 158,
+                                            lineNumber: 230,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 143,
+                                    lineNumber: 215,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -370,37 +417,37 @@ const CheckoutView = ()=>{
                                             className: "fa-solid fa-shield-halved text-emerald-400"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 161,
+                                            lineNumber: 233,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                             children: "Bảo Mật Giao Dịch SSL 256-Bit • Sẵn Sàng Giao Ngay"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 162,
+                                            lineNumber: 234,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 160,
+                                    lineNumber: 232,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0))
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                            lineNumber: 142,
+                            lineNumber: 214,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                        lineNumber: 141,
+                        lineNumber: 213,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                lineNumber: 126,
+                lineNumber: 198,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -416,7 +463,7 @@ const CheckoutView = ()=>{
                                     className: "absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-amber-400/10 blur-3xl pointer-events-none"
                                 }, void 0, false, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 173,
+                                    lineNumber: 245,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -424,7 +471,7 @@ const CheckoutView = ()=>{
                                     children: "❖"
                                 }, void 0, false, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 174,
+                                    lineNumber: 246,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -432,7 +479,7 @@ const CheckoutView = ()=>{
                                     children: "❖"
                                 }, void 0, false, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 177,
+                                    lineNumber: 249,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -447,14 +494,14 @@ const CheckoutView = ()=>{
                                                             className: "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                            lineNumber: 184,
+                                                            lineNumber: 256,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         "TIẾN HÀNH ĐẶT QUÀ TẾT ĐINH MÙI 2027"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 183,
+                                                    lineNumber: 255,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -462,7 +509,7 @@ const CheckoutView = ()=>{
                                                     children: "Thanh Toán & Đặt Quà Tết An Khang"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 187,
+                                                    lineNumber: 259,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -470,13 +517,13 @@ const CheckoutView = ()=>{
                                                     children: "Vui lòng điền đầy đủ thông tin nhận quà và yêu cầu doanh nghiệp để chúng tôi phục vụ chu đáo nhất."
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 190,
+                                                    lineNumber: 262,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 182,
+                                            lineNumber: 254,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -489,7 +536,7 @@ const CheckoutView = ()=>{
                                                         children: "Trạng Thái Đơn Hàng"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 197,
+                                                        lineNumber: 269,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -502,7 +549,7 @@ const CheckoutView = ()=>{
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 201,
+                                                                lineNumber: 273,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -514,36 +561,36 @@ const CheckoutView = ()=>{
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 202,
+                                                                lineNumber: 274,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 200,
+                                                        lineNumber: 272,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                lineNumber: 196,
+                                                lineNumber: 268,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 195,
+                                            lineNumber: 267,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 181,
+                                    lineNumber: 253,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0))
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                            lineNumber: 172,
+                            lineNumber: 244,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -566,12 +613,12 @@ const CheckoutView = ()=>{
                                                                     className: "fa-solid fa-truck-fast text-sm"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 220,
+                                                                    lineNumber: 292,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 219,
+                                                                lineNumber: 291,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -581,7 +628,7 @@ const CheckoutView = ()=>{
                                                                         children: "1. Thông Tin Người Nhận & Địa Chỉ Giao Quà"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 223,
+                                                                        lineNumber: 295,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -589,19 +636,19 @@ const CheckoutView = ()=>{
                                                                         children: "Đơn vị hỗ trợ chia tách giao nhiều chi nhánh hoặc giao trực tiếp văn phòng"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 226,
+                                                                        lineNumber: 298,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 222,
+                                                                lineNumber: 294,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 218,
+                                                        lineNumber: 290,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -617,7 +664,7 @@ const CheckoutView = ()=>{
                                                                                 className: "fa-regular fa-user text-[11px] text-amber-400"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 235,
+                                                                                lineNumber: 307,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             "Họ và tên người đặt / Đại diện nhận quà ",
@@ -626,13 +673,13 @@ const CheckoutView = ()=>{
                                                                                 children: "*"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 236,
+                                                                                lineNumber: 308,
                                                                                 columnNumber: 65
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 234,
+                                                                        lineNumber: 306,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -647,13 +694,13 @@ const CheckoutView = ()=>{
                                                                         className: "w-full bg-red-950/90 border border-amber-500/25 text-amber-100 placeholder-red-300/40 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-amber-400/50 shadow-inner"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 238,
+                                                                        lineNumber: 310,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 233,
+                                                                lineNumber: 305,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -666,7 +713,7 @@ const CheckoutView = ()=>{
                                                                                 className: "fa-solid fa-phone-volume text-[11px] text-amber-400"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 249,
+                                                                                lineNumber: 321,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             "Số điện thoại / Zalo nhận đơn ",
@@ -675,13 +722,13 @@ const CheckoutView = ()=>{
                                                                                 children: "*"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 250,
+                                                                                lineNumber: 322,
                                                                                 columnNumber: 55
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 248,
+                                                                        lineNumber: 320,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -696,19 +743,19 @@ const CheckoutView = ()=>{
                                                                         className: "w-full bg-red-950/90 border border-amber-500/25 text-amber-100 placeholder-red-300/40 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-amber-400/50 shadow-inner"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 252,
+                                                                        lineNumber: 324,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 247,
+                                                                lineNumber: 319,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 232,
+                                                        lineNumber: 304,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -721,7 +768,7 @@ const CheckoutView = ()=>{
                                                                         className: "fa-regular fa-envelope text-[11px] text-amber-400"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 265,
+                                                                        lineNumber: 337,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     "Email nhận xác nhận & hợp đồng B2B ",
@@ -730,13 +777,13 @@ const CheckoutView = ()=>{
                                                                         children: "*"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 266,
+                                                                        lineNumber: 338,
                                                                         columnNumber: 58
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 264,
+                                                                lineNumber: 336,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -751,13 +798,13 @@ const CheckoutView = ()=>{
                                                                 className: "w-full bg-red-950/90 border border-amber-500/25 text-amber-100 placeholder-red-300/40 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-amber-400/50 shadow-inner"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 268,
+                                                                lineNumber: 340,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 263,
+                                                        lineNumber: 335,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -775,13 +822,13 @@ const CheckoutView = ()=>{
                                                                                 children: "*"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 281,
+                                                                                lineNumber: 353,
                                                                                 columnNumber: 42
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 280,
+                                                                        lineNumber: 352,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -797,7 +844,7 @@ const CheckoutView = ()=>{
                                                                                 children: "Hà Nội"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 288,
+                                                                                lineNumber: 360,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -805,7 +852,7 @@ const CheckoutView = ()=>{
                                                                                 children: "TP. Hồ Chí Minh"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 289,
+                                                                                lineNumber: 361,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -813,7 +860,7 @@ const CheckoutView = ()=>{
                                                                                 children: "Đà Nẵng"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 290,
+                                                                                lineNumber: 362,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -821,7 +868,7 @@ const CheckoutView = ()=>{
                                                                                 children: "Hải Phòng"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 291,
+                                                                                lineNumber: 363,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -829,7 +876,7 @@ const CheckoutView = ()=>{
                                                                                 children: "Bình Dương"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 292,
+                                                                                lineNumber: 364,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -837,19 +884,19 @@ const CheckoutView = ()=>{
                                                                                 children: "Tỉnh thành khác..."
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 293,
+                                                                                lineNumber: 365,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 283,
+                                                                        lineNumber: 355,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 279,
+                                                                lineNumber: 351,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -864,13 +911,13 @@ const CheckoutView = ()=>{
                                                                                 children: "*"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 299,
+                                                                                lineNumber: 371,
                                                                                 columnNumber: 38
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 298,
+                                                                        lineNumber: 370,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -886,7 +933,7 @@ const CheckoutView = ()=>{
                                                                                 children: "Quận Hoàn Kiếm"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 306,
+                                                                                lineNumber: 378,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -894,7 +941,7 @@ const CheckoutView = ()=>{
                                                                                 children: "Quận Ba Đình"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 307,
+                                                                                lineNumber: 379,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -902,7 +949,7 @@ const CheckoutView = ()=>{
                                                                                 children: "Quận Hai Bà Trưng"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 308,
+                                                                                lineNumber: 380,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -910,7 +957,7 @@ const CheckoutView = ()=>{
                                                                                 children: "Quận Cầu Giấy"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 309,
+                                                                                lineNumber: 381,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -918,7 +965,7 @@ const CheckoutView = ()=>{
                                                                                 children: "Quận 1 (TP.HCM)"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 310,
+                                                                                lineNumber: 382,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -926,25 +973,25 @@ const CheckoutView = ()=>{
                                                                                 children: "Quận 3 (TP.HCM)"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 311,
+                                                                                lineNumber: 383,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 301,
+                                                                        lineNumber: 373,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 297,
+                                                                lineNumber: 369,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 278,
+                                                        lineNumber: 350,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -959,13 +1006,13 @@ const CheckoutView = ()=>{
                                                                         children: "*"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 318,
+                                                                        lineNumber: 390,
                                                                         columnNumber: 69
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 317,
+                                                                lineNumber: 389,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -980,13 +1027,13 @@ const CheckoutView = ()=>{
                                                                 className: "w-full bg-red-950/90 border border-amber-500/25 text-amber-100 placeholder-red-300/40 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-amber-400/50 shadow-inner"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 320,
+                                                                lineNumber: 392,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 316,
+                                                        lineNumber: 388,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -999,14 +1046,14 @@ const CheckoutView = ()=>{
                                                                         className: "fa-regular fa-clock text-[11px] text-amber-400"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 332,
+                                                                        lineNumber: 404,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     "Khung thời gian nhận quà Tết mong muốn"
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 331,
+                                                                lineNumber: 403,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1022,7 +1069,7 @@ const CheckoutView = ()=>{
                                                                         children: "Giao trước ngày 23 Tháng Chạp (Tết Ông Táo) - Ưu tiên hàng đầu"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 340,
+                                                                        lineNumber: 412,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1030,7 +1077,7 @@ const CheckoutView = ()=>{
                                                                         children: "Giao giai đoạn 24 - 27 Tháng Chạp (Đúng đợt tổng kết năm)"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 343,
+                                                                        lineNumber: 415,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1038,7 +1085,7 @@ const CheckoutView = ()=>{
                                                                         children: "Giao hỏa tốc trong 24 giờ"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 346,
+                                                                        lineNumber: 418,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1046,25 +1093,25 @@ const CheckoutView = ()=>{
                                                                         children: "Giao định kỳ theo danh sách nhiều chi nhánh (Hotline sẽ liên hệ)"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 347,
+                                                                        lineNumber: 419,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 335,
+                                                                lineNumber: 407,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 330,
+                                                        lineNumber: 402,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                lineNumber: 217,
+                                                lineNumber: 289,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1079,12 +1126,12 @@ const CheckoutView = ()=>{
                                                                     className: "fa-solid fa-stamp text-sm"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 358,
+                                                                    lineNumber: 430,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 357,
+                                                                lineNumber: 429,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1094,7 +1141,7 @@ const CheckoutView = ()=>{
                                                                         children: "2. Yêu Cầu Doanh Nghiệp & Dịch Vụ Quà Tết"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 361,
+                                                                        lineNumber: 433,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1102,19 +1149,19 @@ const CheckoutView = ()=>{
                                                                         children: "Đặc quyền tối ưu dành riêng cho các đơn vị, tổ chức đặt quà số lượng lớn"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 364,
+                                                                        lineNumber: 436,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 360,
+                                                                lineNumber: 432,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 356,
+                                                        lineNumber: 428,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1136,7 +1183,7 @@ const CheckoutView = ()=>{
                                                                                 className: "mt-1 rounded border-amber-400 text-amber-500 focus:ring-0 bg-red-950/90 w-4 h-4 cursor-pointer"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 374,
+                                                                                lineNumber: 446,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1146,7 +1193,7 @@ const CheckoutView = ()=>{
                                                                                         children: "Xuất hóa đơn giá trị gia tăng (VAT 8%) cho công ty"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 381,
+                                                                                        lineNumber: 453,
                                                                                         columnNumber: 27
                                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1154,19 +1201,19 @@ const CheckoutView = ()=>{
                                                                                         children: "Phát hành hóa đơn điện tử hợp lệ ngay trong ngày giao dịch thành công."
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 384,
+                                                                                        lineNumber: 456,
                                                                                         columnNumber: 27
                                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 380,
+                                                                                lineNumber: 452,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 373,
+                                                                        lineNumber: 445,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     form.requireVat && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1180,7 +1227,7 @@ const CheckoutView = ()=>{
                                                                                         children: "Tên Công Ty / Doanh Nghiệp"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 393,
+                                                                                        lineNumber: 465,
                                                                                         columnNumber: 29
                                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1193,13 +1240,13 @@ const CheckoutView = ()=>{
                                                                                         className: "w-full bg-red-950/80 border border-amber-500/20 text-amber-100 px-3 py-2 rounded-lg text-xs focus:outline-none"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 396,
+                                                                                        lineNumber: 468,
                                                                                         columnNumber: 29
                                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 392,
+                                                                                lineNumber: 464,
                                                                                 columnNumber: 27
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1210,7 +1257,7 @@ const CheckoutView = ()=>{
                                                                                         children: "Mã Số Thuế (MST)"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 404,
+                                                                                        lineNumber: 476,
                                                                                         columnNumber: 29
                                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1223,13 +1270,13 @@ const CheckoutView = ()=>{
                                                                                         className: "w-full bg-red-950/80 border border-amber-500/20 text-amber-100 px-3 py-2 rounded-lg text-xs focus:outline-none"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 407,
+                                                                                        lineNumber: 479,
                                                                                         columnNumber: 29
                                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 403,
+                                                                                lineNumber: 475,
                                                                                 columnNumber: 27
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1240,7 +1287,7 @@ const CheckoutView = ()=>{
                                                                                         children: "Địa Chỉ Đăng Ký Kinh Doanh"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 415,
+                                                                                        lineNumber: 487,
                                                                                         columnNumber: 29
                                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1253,13 +1300,13 @@ const CheckoutView = ()=>{
                                                                                         className: "w-full bg-red-950/80 border border-amber-500/20 text-amber-100 px-3 py-2 rounded-lg text-xs focus:outline-none"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 418,
+                                                                                        lineNumber: 490,
                                                                                         columnNumber: 29
                                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 414,
+                                                                                lineNumber: 486,
                                                                                 columnNumber: 27
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1270,7 +1317,7 @@ const CheckoutView = ()=>{
                                                                                         children: "Email Nhận Hóa Đơn Điện Tử (E-Invoice)"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 426,
+                                                                                        lineNumber: 498,
                                                                                         columnNumber: 29
                                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1283,25 +1330,25 @@ const CheckoutView = ()=>{
                                                                                         className: "w-full bg-red-950/80 border border-amber-500/20 text-amber-100 px-3 py-2 rounded-lg text-xs focus:outline-none"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 429,
+                                                                                        lineNumber: 501,
                                                                                         columnNumber: 29
                                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 425,
+                                                                                lineNumber: 497,
                                                                                 columnNumber: 27
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 391,
+                                                                        lineNumber: 463,
                                                                         columnNumber: 25
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 372,
+                                                                lineNumber: 444,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1319,7 +1366,7 @@ const CheckoutView = ()=>{
                                                                             className: "mt-1 rounded border-amber-400 text-amber-500 focus:ring-0 bg-red-950/90 w-4 h-4 cursor-pointer"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 443,
+                                                                            lineNumber: 515,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1332,7 +1379,7 @@ const CheckoutView = ()=>{
                                                                                             children: "Kèm thiệp chúc Tết thiết kế riêng & in lời chúc từ Ban Lãnh Đạo"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                            lineNumber: 451,
+                                                                                            lineNumber: 523,
                                                                                             columnNumber: 29
                                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1340,13 +1387,13 @@ const CheckoutView = ()=>{
                                                                                             children: "Tặng Kèm"
                                                                                         }, void 0, false, {
                                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                            lineNumber: 454,
+                                                                                            lineNumber: 526,
                                                                                             columnNumber: 29
                                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                    lineNumber: 450,
+                                                                                    lineNumber: 522,
                                                                                     columnNumber: 27
                                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1354,24 +1401,24 @@ const CheckoutView = ()=>{
                                                                                     children: "Chất liệu giấy mỹ thuật ánh trai cao cấp dập nổi hoa văn mùa xuân Đinh Mùi 2027."
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                    lineNumber: 458,
+                                                                                    lineNumber: 530,
                                                                                     columnNumber: 27
                                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 449,
+                                                                            lineNumber: 521,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 442,
+                                                                    lineNumber: 514,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 441,
+                                                                lineNumber: 513,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1382,7 +1429,7 @@ const CheckoutView = ()=>{
                                                                         children: "Lời chúc mừng năm mới hoặc ghi chú giao hàng"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 467,
+                                                                        lineNumber: 539,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -1396,25 +1443,25 @@ const CheckoutView = ()=>{
                                                                         className: "w-full bg-red-950/90 border border-amber-500/25 text-amber-100 placeholder-red-300/40 p-3 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-amber-400/50 shadow-inner"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 470,
+                                                                        lineNumber: 542,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 466,
+                                                                lineNumber: 538,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 370,
+                                                        lineNumber: 442,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                lineNumber: 355,
+                                                lineNumber: 427,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1429,12 +1476,12 @@ const CheckoutView = ()=>{
                                                                     className: "fa-solid fa-lock text-sm"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 485,
+                                                                    lineNumber: 557,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 484,
+                                                                lineNumber: 556,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1444,7 +1491,7 @@ const CheckoutView = ()=>{
                                                                         children: "3. Phương Thức Thanh Toán Linh Hoạt"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 488,
+                                                                        lineNumber: 560,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1452,19 +1499,19 @@ const CheckoutView = ()=>{
                                                                         children: "Hệ thống thanh toán bảo mật chuẩn SSL 256-bit & hợp đồng kinh tế minh bạch"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 491,
+                                                                        lineNumber: 563,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 487,
+                                                                lineNumber: 559,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 483,
+                                                        lineNumber: 555,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1484,7 +1531,7 @@ const CheckoutView = ()=>{
                                                                         className: "mt-1 text-amber-400 focus:ring-0 bg-red-950 w-4 h-4"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 506,
+                                                                        lineNumber: 578,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1501,7 +1548,7 @@ const CheckoutView = ()=>{
                                                                                                 children: "Chuyển khoản ngân hàng qua mã QR (VietQR / Napas 247)"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                                lineNumber: 516,
+                                                                                                lineNumber: 588,
                                                                                                 columnNumber: 29
                                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1509,13 +1556,13 @@ const CheckoutView = ()=>{
                                                                                                 children: "Khuyên dùng"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                                lineNumber: 519,
+                                                                                                lineNumber: 591,
                                                                                                 columnNumber: 29
                                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 515,
+                                                                                        lineNumber: 587,
                                                                                         columnNumber: 27
                                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1525,26 +1572,26 @@ const CheckoutView = ()=>{
                                                                                                 className: "fa-solid fa-qrcode"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                                lineNumber: 524,
+                                                                                                lineNumber: 596,
                                                                                                 columnNumber: 29
                                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                                 className: "fa-solid fa-building-columns"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                                lineNumber: 525,
+                                                                                                lineNumber: 597,
                                                                                                 columnNumber: 29
                                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 523,
+                                                                                        lineNumber: 595,
                                                                                         columnNumber: 27
                                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 514,
+                                                                                lineNumber: 586,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1552,19 +1599,19 @@ const CheckoutView = ()=>{
                                                                                 children: "Quét mã QR tự động điền số tiền và nội dung, xác nhận đơn lập tức không cần chụp sao kê."
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 528,
+                                                                                lineNumber: 600,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 513,
+                                                                        lineNumber: 585,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 499,
+                                                                lineNumber: 571,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -1581,7 +1628,7 @@ const CheckoutView = ()=>{
                                                                         className: "mt-1 text-amber-400 focus:ring-0 bg-red-950 w-4 h-4"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 542,
+                                                                        lineNumber: 614,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1595,7 +1642,7 @@ const CheckoutView = ()=>{
                                                                                         children: "Thanh toán khi nhận hàng (COD)"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 551,
+                                                                                        lineNumber: 623,
                                                                                         columnNumber: 27
                                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1605,20 +1652,20 @@ const CheckoutView = ()=>{
                                                                                                 className: "fa-solid fa-truck-fast mr-1"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                                lineNumber: 555,
+                                                                                                lineNumber: 627,
                                                                                                 columnNumber: 29
                                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                                             "Giao tận nơi"
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 554,
+                                                                                        lineNumber: 626,
                                                                                         columnNumber: 27
                                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 550,
+                                                                                lineNumber: 622,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1626,19 +1673,19 @@ const CheckoutView = ()=>{
                                                                                 children: "Kiểm tra tem bảo chứng, độ hoàn thiện nước sơn mài và số lượng hộp quà trước khi thanh toán."
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 558,
+                                                                                lineNumber: 630,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 549,
+                                                                        lineNumber: 621,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 535,
+                                                                lineNumber: 607,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -1655,7 +1702,7 @@ const CheckoutView = ()=>{
                                                                         className: "mt-1 text-amber-400 focus:ring-0 bg-red-950 w-4 h-4"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 572,
+                                                                        lineNumber: 644,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1672,7 +1719,7 @@ const CheckoutView = ()=>{
                                                                                                 children: "Thanh toán công nợ / Hợp đồng Doanh Nghiệp (B2B Priority)"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                                lineNumber: 582,
+                                                                                                lineNumber: 654,
                                                                                                 columnNumber: 29
                                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1680,26 +1727,26 @@ const CheckoutView = ()=>{
                                                                                                 children: "Dành cho Tập đoàn"
                                                                                             }, void 0, false, {
                                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                                lineNumber: 585,
+                                                                                                lineNumber: 657,
                                                                                                 columnNumber: 29
                                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                                         ]
                                                                                     }, void 0, true, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 581,
+                                                                                        lineNumber: 653,
                                                                                         columnNumber: 27
                                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                         className: "fa-solid fa-file-contract text-sm text-amber-400"
                                                                                     }, void 0, false, {
                                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                        lineNumber: 589,
+                                                                                        lineNumber: 661,
                                                                                         columnNumber: 27
                                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                                 ]
                                                                             }, void 0, true, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 580,
+                                                                                lineNumber: 652,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1707,42 +1754,42 @@ const CheckoutView = ()=>{
                                                                                 children: "Ký kết hợp đồng thương mại điện tử, thanh toán đặt cọc 30% - 50% và quyết toán sau khi nghiệm thu."
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                lineNumber: 591,
+                                                                                lineNumber: 663,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 579,
+                                                                        lineNumber: 651,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 565,
+                                                                lineNumber: 637,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                        lineNumber: 497,
+                                                        lineNumber: 569,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                lineNumber: 482,
+                                                lineNumber: 554,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                        lineNumber: 215,
+                                        lineNumber: 287,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0))
                                 }, void 0, false, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 214,
+                                    lineNumber: 286,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1755,7 +1802,7 @@ const CheckoutView = ()=>{
                                                     className: "absolute -top-12 -right-12 w-36 h-36 rounded-full bg-amber-400/15 blur-2xl pointer-events-none"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 604,
+                                                    lineNumber: 676,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1771,20 +1818,20 @@ const CheckoutView = ()=>{
                                                                             className: "fa-solid fa-receipt text-amber-400 text-sm"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 609,
+                                                                            lineNumber: 681,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Tóm Tắt Đơn Quà Tết"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 610,
+                                                                            lineNumber: 682,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 608,
+                                                                    lineNumber: 680,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1795,13 +1842,13 @@ const CheckoutView = ()=>{
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 612,
+                                                                    lineNumber: 684,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                            lineNumber: 607,
+                                                            lineNumber: 679,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1815,7 +1862,7 @@ const CheckoutView = ()=>{
                                                                             className: "w-12 h-12 rounded-lg object-cover bg-red-900/60 border border-amber-500/20 shrink-0"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 621,
+                                                                            lineNumber: 693,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1826,7 +1873,7 @@ const CheckoutView = ()=>{
                                                                                     children: item.product.name
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                    lineNumber: 627,
+                                                                                    lineNumber: 699,
                                                                                     columnNumber: 27
                                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1839,13 +1886,13 @@ const CheckoutView = ()=>{
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                    lineNumber: 630,
+                                                                                    lineNumber: 702,
                                                                                     columnNumber: 27
                                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 626,
+                                                                            lineNumber: 698,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1853,18 +1900,18 @@ const CheckoutView = ()=>{
                                                                             children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(item.unitPrice * item.quantity)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 634,
+                                                                            lineNumber: 706,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, item.id, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 620,
+                                                                    lineNumber: 692,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                            lineNumber: 618,
+                                                            lineNumber: 690,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1881,7 +1928,7 @@ const CheckoutView = ()=>{
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 644,
+                                                                            lineNumber: 716,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1889,13 +1936,13 @@ const CheckoutView = ()=>{
                                                                             children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(cartTotals.subtotal)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 645,
+                                                                            lineNumber: 717,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 643,
+                                                                    lineNumber: 715,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1909,7 +1956,7 @@ const CheckoutView = ()=>{
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 650,
+                                                                            lineNumber: 722,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1920,13 +1967,13 @@ const CheckoutView = ()=>{
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 651,
+                                                                            lineNumber: 723,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 649,
+                                                                    lineNumber: 721,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1936,7 +1983,7 @@ const CheckoutView = ()=>{
                                                                             children: "Phí vận chuyển hỏa tốc:"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 656,
+                                                                            lineNumber: 728,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1946,20 +1993,20 @@ const CheckoutView = ()=>{
                                                                                     className: "fa-solid fa-bolt text-xs text-amber-400"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                    lineNumber: 658,
+                                                                                    lineNumber: 730,
                                                                                     columnNumber: 25
                                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                                 " Miễn phí (0 ₫)"
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 657,
+                                                                            lineNumber: 729,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 655,
+                                                                    lineNumber: 727,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1969,7 +2016,7 @@ const CheckoutView = ()=>{
                                                                             children: "Thiệp chúc mừng Đinh Mùi 2027:"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 662,
+                                                                            lineNumber: 734,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1977,19 +2024,19 @@ const CheckoutView = ()=>{
                                                                             children: "Tặng kèm (0 ₫)"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 663,
+                                                                            lineNumber: 735,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 661,
+                                                                    lineNumber: 733,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                            lineNumber: 642,
+                                                            lineNumber: 714,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2002,7 +2049,7 @@ const CheckoutView = ()=>{
                                                                         children: "Tổng Tiền Thanh Toán (Đã bao gồm VAT 8%)"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 670,
+                                                                        lineNumber: 742,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2010,7 +2057,7 @@ const CheckoutView = ()=>{
                                                                         children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(cartTotals.grandTotal)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 673,
+                                                                        lineNumber: 745,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2022,18 +2069,18 @@ const CheckoutView = ()=>{
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                        lineNumber: 676,
+                                                                        lineNumber: 748,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 669,
+                                                                lineNumber: 741,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                            lineNumber: 668,
+                                                            lineNumber: 740,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2051,20 +2098,20 @@ const CheckoutView = ()=>{
                                                                                     className: "fa-solid fa-lock text-xs"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                    lineNumber: 690,
+                                                                                    lineNumber: 762,
                                                                                     columnNumber: 25
                                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                                     children: isSubmitting ? 'ĐANG XỬ LÝ...' : 'HOÀN TẤT ĐẶT HÀNG'
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                                    lineNumber: 691,
+                                                                                    lineNumber: 763,
                                                                                     columnNumber: 25
                                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 689,
+                                                                            lineNumber: 761,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2072,13 +2119,13 @@ const CheckoutView = ()=>{
                                                                             children: "bảo chứng chất lượng & bảo mật tuyệt đối"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 693,
+                                                                            lineNumber: 765,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 684,
+                                                                    lineNumber: 756,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2090,20 +2137,20 @@ const CheckoutView = ()=>{
                                                                             className: "fa-solid fa-arrow-left mr-1.5 text-[10px]"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 703,
+                                                                            lineNumber: 775,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         "Quay lại chỉnh sửa giỏ hàng"
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 698,
+                                                                    lineNumber: 770,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                            lineNumber: 683,
+                                                            lineNumber: 755,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2117,20 +2164,20 @@ const CheckoutView = ()=>{
                                                                             children: "✔"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 711,
+                                                                            lineNumber: 783,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Tư vấn viên gọi điện xác nhận đơn & lịch giao nhận trong 15 phút."
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 712,
+                                                                            lineNumber: 784,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 710,
+                                                                    lineNumber: 782,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2141,20 +2188,20 @@ const CheckoutView = ()=>{
                                                                             children: "✔"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 715,
+                                                                            lineNumber: 787,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Miễn phí đổi trả 1:1 ngay tận nơi nếu có bất kỳ lỗi vận chuyển."
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 716,
+                                                                            lineNumber: 788,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 714,
+                                                                    lineNumber: 786,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2165,38 +2212,38 @@ const CheckoutView = ()=>{
                                                                             children: "✔"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 719,
+                                                                            lineNumber: 791,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Hỗ trợ gửi hợp đồng kinh tế và hóa đơn đỏ bản cứng tận văn phòng."
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                            lineNumber: 720,
+                                                                            lineNumber: 792,
                                                                             columnNumber: 23
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 718,
+                                                                    lineNumber: 790,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                            lineNumber: 709,
+                                                            lineNumber: 781,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 606,
+                                                    lineNumber: 678,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 603,
+                                            lineNumber: 675,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2211,12 +2258,12 @@ const CheckoutView = ()=>{
                                                                 className: "fa-solid fa-phone-volume animate-pulse"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                lineNumber: 730,
+                                                                lineNumber: 802,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                            lineNumber: 729,
+                                                            lineNumber: 801,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2226,7 +2273,7 @@ const CheckoutView = ()=>{
                                                                     children: "Cần hỗ trợ hợp đồng B2B gấp?"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 733,
+                                                                    lineNumber: 805,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2234,19 +2281,19 @@ const CheckoutView = ()=>{
                                                                     children: "Hotline: 1900 8866"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                                    lineNumber: 734,
+                                                                    lineNumber: 806,
                                                                     columnNumber: 21
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                            lineNumber: 732,
+                                                            lineNumber: 804,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 728,
+                                                    lineNumber: 800,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -2255,25 +2302,25 @@ const CheckoutView = ()=>{
                                                     children: "Gọi Ngay"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 737,
+                                                    lineNumber: 809,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 727,
+                                            lineNumber: 799,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 602,
+                                    lineNumber: 674,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0))
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                            lineNumber: 212,
+                            lineNumber: 284,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2288,12 +2335,12 @@ const CheckoutView = ()=>{
                                                 className: "fa-solid fa-shield-halved"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                lineNumber: 751,
+                                                lineNumber: 823,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 750,
+                                            lineNumber: 822,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2303,7 +2350,7 @@ const CheckoutView = ()=>{
                                                     children: "Bảo Mật Thông Tin Doanh Nghiệp"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 754,
+                                                    lineNumber: 826,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2311,19 +2358,19 @@ const CheckoutView = ()=>{
                                                     children: "Cam kết bảo mật 100% dữ liệu đối tác, danh sách khách hàng và thông tin dự án B2B."
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 757,
+                                                    lineNumber: 829,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 753,
+                                            lineNumber: 825,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 749,
+                                    lineNumber: 821,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2335,12 +2382,12 @@ const CheckoutView = ()=>{
                                                 className: "fa-solid fa-file-contract"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                lineNumber: 765,
+                                                lineNumber: 837,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 764,
+                                            lineNumber: 836,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2350,7 +2397,7 @@ const CheckoutView = ()=>{
                                                     children: "Xuất Hóa Đơn VAT Chuẩn Chỉnh"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 768,
+                                                    lineNumber: 840,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2358,19 +2405,19 @@ const CheckoutView = ()=>{
                                                     children: "Hóa đơn điện tử hợp lệ 8% xuất theo danh mục quà tặng doanh nghiệp gửi trong ngày."
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 771,
+                                                    lineNumber: 843,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 767,
+                                            lineNumber: 839,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 763,
+                                    lineNumber: 835,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2382,12 +2429,12 @@ const CheckoutView = ()=>{
                                                 className: "fa-solid fa-clock"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                lineNumber: 779,
+                                                lineNumber: 851,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 778,
+                                            lineNumber: 850,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2397,7 +2444,7 @@ const CheckoutView = ()=>{
                                                     children: "Tư Vấn Xác Nhận Trong 15 Phút"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 782,
+                                                    lineNumber: 854,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2405,42 +2452,42 @@ const CheckoutView = ()=>{
                                                     children: "Hotline VIP và chuyên viên phục vụ xuyên suốt mùa Tết Đinh Mùi 2027 24/7."
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                                    lineNumber: 785,
+                                                    lineNumber: 857,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                            lineNumber: 781,
+                                            lineNumber: 853,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                                    lineNumber: 777,
+                                    lineNumber: 849,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0))
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                            lineNumber: 748,
+                            lineNumber: 820,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                    lineNumber: 170,
+                    lineNumber: 242,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-                lineNumber: 169,
+                lineNumber: 241,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/presentation/views/CheckoutView.tsx",
-        lineNumber: 124,
+        lineNumber: 196,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };

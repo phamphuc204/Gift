@@ -22,20 +22,137 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$
 ;
 const ProductDetailView = ()=>{
     const { selectedProductId, navigateTo, addToCart } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$application$2f$AppContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useApp"])();
-    const product = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PRODUCTS"].find((p)=>p.id === selectedProductId) || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PRODUCTS"][0];
-    const [activeImage, setActiveImage] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(product.imageUrl);
-    const [selectedVariant, setSelectedVariant] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(product.variants ? product.variants[0].id : 'standard');
+    const [product, setProduct] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [relatedProducts, setRelatedProducts] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
+    const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+    const [activeImage, setActiveImage] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+    const [selectedVariant, setSelectedVariant] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('standard');
     const [quantity, setQuantity] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(1);
     const [activeTab, setActiveTab] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(1);
-    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useEffect(()=>{
-        setActiveImage(product.imageUrl);
-        if (product.variants && product.variants.length > 0) {
-            setSelectedVariant(product.variants[0].id);
+    // Lấy chi tiết sản phẩm từ Backend API
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if (!selectedProductId) {
+            setError('Không tìm thấy mã sản phẩm.');
+            setIsLoading(false);
+            return;
         }
+        const controller = new AbortController();
+        const fetchProduct = async ()=>{
+            try {
+                setIsLoading(true);
+                setError('');
+                setProduct(null);
+                const response = await fetch(`/api/products/${encodeURIComponent(selectedProductId)}`, {
+                    signal: controller.signal
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success || !result.data) {
+                    throw new Error(result.message || 'Không thể lấy thông tin sản phẩm.');
+                }
+                const productData = result.data;
+                setProduct(productData);
+                setActiveImage(productData.imageUrl);
+                setSelectedVariant(productData.variants?.[0]?.id || 'standard');
+                setQuantity(1);
+            } catch (err) {
+                if (err instanceof Error && err.name !== 'AbortError') {
+                    setError(err.message);
+                }
+            } finally{
+                if (!controller.signal.aborted) {
+                    setIsLoading(false);
+                }
+            }
+        };
+        fetchProduct();
+        return ()=>controller.abort();
     }, [
-        product.id,
-        product.imageUrl
+        selectedProductId
     ]);
+    // Lấy danh sách sản phẩm liên quan từ Products API
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const controller = new AbortController();
+        const fetchRelatedProducts = async ()=>{
+            try {
+                const response = await fetch('/api/products', {
+                    signal: controller.signal
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    setRelatedProducts(result.data || []);
+                }
+            } catch (err) {
+                if (err instanceof Error && err.name !== 'AbortError') {
+                    console.error('Lỗi lấy sản phẩm liên quan:', err);
+                }
+            }
+        };
+        fetchRelatedProducts();
+        return ()=>controller.abort();
+    }, []);
+    // Trạng thái đang tải dữ liệu
+    if (isLoading) {
+        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            className: "min-h-[60vh] flex items-center justify-center text-amber-300",
+            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                className: "text-center",
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "animate-spin rounded-full h-12 w-12 border-4 border-amber-400 border-t-transparent mx-auto mb-4"
+                    }, void 0, false, {
+                        fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
+                        lineNumber: 113,
+                        columnNumber: 11
+                    }, ("TURBOPACK compile-time value", void 0)),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                        children: "Đang tải thông tin sản phẩm..."
+                    }, void 0, false, {
+                        fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
+                        lineNumber: 114,
+                        columnNumber: 11
+                    }, ("TURBOPACK compile-time value", void 0))
+                ]
+            }, void 0, true, {
+                fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
+                lineNumber: 112,
+                columnNumber: 9
+            }, ("TURBOPACK compile-time value", void 0))
+        }, void 0, false, {
+            fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
+            lineNumber: 111,
+            columnNumber: 7
+        }, ("TURBOPACK compile-time value", void 0));
+    }
+    // Trạng thái lỗi hoặc không tìm thấy sản phẩm
+    if (error || !product) {
+        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            className: "min-h-[60vh] flex flex-col items-center justify-center text-center px-4",
+            children: [
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                    className: "text-red-300 mb-4",
+                    children: error || 'Không tìm thấy sản phẩm.'
+                }, void 0, false, {
+                    fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
+                    lineNumber: 124,
+                    columnNumber: 9
+                }, ("TURBOPACK compile-time value", void 0)),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    onClick: ()=>navigateTo('catalog'),
+                    className: "px-5 py-2 rounded-lg bg-amber-400 text-red-950 font-bold",
+                    children: "Quay lại danh sách sản phẩm"
+                }, void 0, false, {
+                    fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
+                    lineNumber: 127,
+                    columnNumber: 9
+                }, ("TURBOPACK compile-time value", void 0))
+            ]
+        }, void 0, true, {
+            fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
+            lineNumber: 123,
+            columnNumber: 7
+        }, ("TURBOPACK compile-time value", void 0));
+    }
     const selectedVariantObj = product.variants?.find((v)=>v.id === selectedVariant);
     const variantLabel = selectedVariantObj ? `${selectedVariantObj.name} • ${selectedVariantObj.label}` : 'Phiên bản tiêu chuẩn';
     const handleAddToCart = ()=>{
@@ -45,7 +162,7 @@ const ProductDetailView = ()=>{
         addToCart(product, quantity, selectedVariant, variantLabel);
         navigateTo('cart');
     };
-    const relatedProducts = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PRODUCTS"].filter((p)=>p.id !== product.id).slice(0, 4);
+    const relatedProductsFiltered = relatedProducts.filter((p)=>p.id !== product.id).slice(0, 4);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "w-full",
         children: [
@@ -59,7 +176,7 @@ const ProductDetailView = ()=>{
                         className: "absolute inset-0 radial-lantern-glow pointer-events-none"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                        lineNumber: 60,
+                        lineNumber: 168,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -67,7 +184,7 @@ const ProductDetailView = ()=>{
                         children: "❖"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                        lineNumber: 61,
+                        lineNumber: 169,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -75,7 +192,7 @@ const ProductDetailView = ()=>{
                         children: "❖"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                        lineNumber: 64,
+                        lineNumber: 172,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -92,14 +209,14 @@ const ProductDetailView = ()=>{
                                             children: "Trang Chủ"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 71,
+                                            lineNumber: 179,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                             children: "/"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 74,
+                                            lineNumber: 185,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -108,14 +225,14 @@ const ProductDetailView = ()=>{
                                             children: "Hộp Quà Tết"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 75,
+                                            lineNumber: 186,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                             children: "/"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 78,
+                                            lineNumber: 192,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -123,13 +240,13 @@ const ProductDetailView = ()=>{
                                             children: product.name
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 79,
+                                            lineNumber: 193,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                    lineNumber: 70,
+                                    lineNumber: 178,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0)),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -139,37 +256,37 @@ const ProductDetailView = ()=>{
                                             className: "w-2 h-2 rounded-full bg-emerald-400 animate-ping"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 82,
+                                            lineNumber: 198,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                             children: "Sẵn Sàng Giao Ngay • Mùa Tết Đinh Mùi 2027"
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 83,
+                                            lineNumber: 199,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                    lineNumber: 81,
+                                    lineNumber: 197,
                                     columnNumber: 13
                                 }, ("TURBOPACK compile-time value", void 0))
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                            lineNumber: 69,
+                            lineNumber: 177,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                        lineNumber: 68,
+                        lineNumber: 176,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                lineNumber: 53,
+                lineNumber: 161,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -188,7 +305,7 @@ const ProductDetailView = ()=>{
                                                 className: "absolute inset-0 bg-radial from-amber-500/15 via-transparent to-black/60 pointer-events-none"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 96,
+                                                lineNumber: 212,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -201,14 +318,14 @@ const ProductDetailView = ()=>{
                                                                 children: "🔥"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 101,
+                                                                lineNumber: 217,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             " BÁN CHẠY CHO DOANH NGHIỆP"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 100,
+                                                        lineNumber: 216,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -218,20 +335,20 @@ const ProductDetailView = ()=>{
                                                                 children: "✨"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 104,
+                                                                lineNumber: 220,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             " GIỚI HẠN 2027"
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 103,
+                                                        lineNumber: 219,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 99,
+                                                lineNumber: 215,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -245,12 +362,12 @@ const ProductDetailView = ()=>{
                                                             className: "fa-regular fa-heart text-sm"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 115,
+                                                            lineNumber: 231,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 110,
+                                                        lineNumber: 226,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -261,27 +378,27 @@ const ProductDetailView = ()=>{
                                                             className: "fa-solid fa-share-nodes text-sm"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 122,
+                                                            lineNumber: 238,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 117,
+                                                        lineNumber: 233,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 109,
+                                                lineNumber: 225,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                                src: activeImage,
+                                                src: activeImage || product.imageUrl,
                                                 alt: product.name,
                                                 className: "w-full h-full object-cover object-center transition-all duration-700 group-hover:scale-105"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 127,
+                                                lineNumber: 243,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -294,7 +411,7 @@ const ProductDetailView = ()=>{
                                                                 className: "fa-solid fa-arrows-rotate text-amber-400"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 136,
+                                                                lineNumber: 252,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -302,13 +419,13 @@ const ProductDetailView = ()=>{
                                                                 children: "Chạm & Phóng to chi tiết sơn mài 7 lớp"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 137,
+                                                                lineNumber: 253,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 135,
+                                                        lineNumber: 251,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -318,7 +435,7 @@ const ProductDetailView = ()=>{
                                                                 className: "fa-solid fa-certificate text-amber-400 text-xs"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 140,
+                                                                lineNumber: 258,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -326,25 +443,25 @@ const ProductDetailView = ()=>{
                                                                 children: "Sơn Mài Thủ Công 100%"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 141,
+                                                                lineNumber: 259,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 139,
+                                                        lineNumber: 257,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 134,
+                                                lineNumber: 250,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 95,
+                                        lineNumber: 211,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -352,19 +469,19 @@ const ProductDetailView = ()=>{
                                         children: [
                                             {
                                                 label: 'Toàn Cảnh',
-                                                url: product.gallery[0] || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["IMAGES"].carousel1
+                                                url: product.gallery?.[0] || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["IMAGES"].carousel1
                                             },
                                             {
                                                 label: 'Chi Tiết Set',
-                                                url: product.gallery[1] || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["IMAGES"].boxDetailedSet
+                                                url: product.gallery?.[1] || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["IMAGES"].boxDetailedSet
                                             },
                                             {
                                                 label: 'Chất Liệu Sơn Mài',
-                                                url: product.gallery[2] || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["IMAGES"].boxGoldLeaf
+                                                url: product.gallery?.[2] || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["IMAGES"].boxGoldLeaf
                                             },
                                             {
                                                 label: 'Bối Cảnh',
-                                                url: product.gallery[3] || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["IMAGES"].carousel2
+                                                url: product.gallery?.[3] || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["IMAGES"].carousel2
                                             }
                                         ].map((thumb, idx)=>{
                                             const isSelected = activeImage === thumb.url;
@@ -379,7 +496,7 @@ const ProductDetailView = ()=>{
                                                         className: "w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 166,
+                                                        lineNumber: 285,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -387,19 +504,19 @@ const ProductDetailView = ()=>{
                                                         children: thumb.label
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 171,
+                                                        lineNumber: 290,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, idx, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 156,
+                                                lineNumber: 275,
                                                 columnNumber: 19
                                             }, ("TURBOPACK compile-time value", void 0));
                                         })
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 147,
+                                        lineNumber: 265,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -414,12 +531,12 @@ const ProductDetailView = ()=>{
                                                             className: "fa-solid fa-play text-xs ml-0.5"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 183,
+                                                            lineNumber: 302,
                                                             columnNumber: 19
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 182,
+                                                        lineNumber: 301,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -429,7 +546,7 @@ const ProductDetailView = ()=>{
                                                                 children: "Video Mở Hộp Thực Tế Sơn Mài"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 186,
+                                                                lineNumber: 305,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -437,19 +554,19 @@ const ProductDetailView = ()=>{
                                                                 children: "Xem cận cảnh độ bóng gương và lụa vàng hoàng gia"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 187,
+                                                                lineNumber: 308,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 185,
+                                                        lineNumber: 304,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 181,
+                                                lineNumber: 300,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -461,32 +578,32 @@ const ProductDetailView = ()=>{
                                                         children: "Xem Video"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 195,
+                                                        lineNumber: 320,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                         className: "fa-solid fa-arrow-right text-[10px]"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 196,
+                                                        lineNumber: 321,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 190,
+                                                lineNumber: 313,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 180,
+                                        lineNumber: 299,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                lineNumber: 93,
+                                lineNumber: 209,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -501,14 +618,14 @@ const ProductDetailView = ()=>{
                                                         children: "🌸"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 205,
+                                                        lineNumber: 330,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     " BỘ SƯU TẬP QUÀ TẾT ĐINH MÙI 2027"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 204,
+                                                lineNumber: 329,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -516,7 +633,7 @@ const ProductDetailView = ()=>{
                                                 children: product.name
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 207,
+                                                lineNumber: 332,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -524,13 +641,13 @@ const ProductDetailView = ()=>{
                                                 children: product.description
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 210,
+                                                lineNumber: 335,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 203,
+                                        lineNumber: 328,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -544,7 +661,7 @@ const ProductDetailView = ()=>{
                                                         children: "Mã SKU:"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 216,
+                                                        lineNumber: 343,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -552,13 +669,13 @@ const ProductDetailView = ()=>{
                                                         children: product.sku
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 217,
+                                                        lineNumber: 344,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 215,
+                                                lineNumber: 342,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -571,41 +688,41 @@ const ProductDetailView = ()=>{
                                                                 className: "fa-solid fa-star"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 221,
+                                                                lineNumber: 348,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                 className: "fa-solid fa-star"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 222,
+                                                                lineNumber: 349,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                 className: "fa-solid fa-star"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 223,
+                                                                lineNumber: 350,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                 className: "fa-solid fa-star"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 224,
+                                                                lineNumber: 351,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                 className: "fa-solid fa-star-half-stroke"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 225,
+                                                                lineNumber: 352,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 220,
+                                                        lineNumber: 347,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -616,7 +733,7 @@ const ProductDetailView = ()=>{
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 227,
+                                                        lineNumber: 354,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -628,19 +745,19 @@ const ProductDetailView = ()=>{
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 228,
+                                                        lineNumber: 355,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 219,
+                                                lineNumber: 346,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 214,
+                                        lineNumber: 341,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -654,7 +771,7 @@ const ProductDetailView = ()=>{
                                                         children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(product.price)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 235,
+                                                        lineNumber: 364,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     product.originalPrice && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -662,7 +779,7 @@ const ProductDetailView = ()=>{
                                                         children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(product.originalPrice)
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 239,
+                                                        lineNumber: 369,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -670,13 +787,13 @@ const ProductDetailView = ()=>{
                                                         children: "-17%"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 243,
+                                                        lineNumber: 374,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 234,
+                                                lineNumber: 363,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -686,20 +803,20 @@ const ProductDetailView = ()=>{
                                                         className: "fa-solid fa-circle-check text-emerald-400 text-xs"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 248,
+                                                        lineNumber: 380,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                         children: "Đã bao gồm VAT 8% • Chiết khấu bậc thang đến 25% cho doanh nghiệp"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 249,
+                                                        lineNumber: 381,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 247,
+                                                lineNumber: 379,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -713,7 +830,7 @@ const ProductDetailView = ()=>{
                                                                 children: "10 - 50 Hộp"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 255,
+                                                                lineNumber: 389,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -721,13 +838,13 @@ const ProductDetailView = ()=>{
                                                                 children: "CK 10%"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 256,
+                                                                lineNumber: 390,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 254,
+                                                        lineNumber: 388,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -738,7 +855,7 @@ const ProductDetailView = ()=>{
                                                                 children: "51 - 200 Hộp"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 259,
+                                                                lineNumber: 393,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -746,13 +863,13 @@ const ProductDetailView = ()=>{
                                                                 children: "CK 18%"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 260,
+                                                                lineNumber: 394,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 258,
+                                                        lineNumber: 392,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -763,7 +880,7 @@ const ProductDetailView = ()=>{
                                                                 children: "> 200 Hộp"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 263,
+                                                                lineNumber: 397,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -771,25 +888,25 @@ const ProductDetailView = ()=>{
                                                                 children: "CK Tối Đa 25%"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 264,
+                                                                lineNumber: 400,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 262,
+                                                        lineNumber: 396,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 253,
+                                                lineNumber: 387,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 233,
+                                        lineNumber: 362,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     product.variants && product.variants.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -798,19 +915,20 @@ const ProductDetailView = ()=>{
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                                                 className: "block text-xs font-bold uppercase tracking-wider text-amber-200",
                                                 children: [
-                                                    "Phiên Bản Sơn Mài: ",
+                                                    "Phiên Bản Sơn Mài:",
+                                                    ' ',
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                         className: "text-amber-400 font-semibold lowercase",
                                                         children: "(chọn màu hộp)"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 273,
-                                                        columnNumber: 38
+                                                        lineNumber: 412,
+                                                        columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 272,
+                                                lineNumber: 410,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -829,7 +947,7 @@ const ProductDetailView = ()=>{
                                                                 }
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 289,
+                                                                lineNumber: 432,
                                                                 columnNumber: 25
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -837,7 +955,7 @@ const ProductDetailView = ()=>{
                                                                 children: v.name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 293,
+                                                                lineNumber: 436,
                                                                 columnNumber: 25
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -845,25 +963,25 @@ const ProductDetailView = ()=>{
                                                                 children: v.label
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 294,
+                                                                lineNumber: 437,
                                                                 columnNumber: 25
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, v.id, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 279,
+                                                        lineNumber: 422,
                                                         columnNumber: 23
                                                     }, ("TURBOPACK compile-time value", void 0));
                                                 })
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 275,
+                                                lineNumber: 417,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 271,
+                                        lineNumber: 409,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -876,7 +994,7 @@ const ProductDetailView = ()=>{
                                                         children: "Số Lượng Đặt Hàng:"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 305,
+                                                        lineNumber: 450,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -888,13 +1006,13 @@ const ProductDetailView = ()=>{
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 306,
+                                                        lineNumber: 451,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 304,
+                                                lineNumber: 449,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -911,7 +1029,7 @@ const ProductDetailView = ()=>{
                                                                 children: "-"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 312,
+                                                                lineNumber: 458,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -923,7 +1041,7 @@ const ProductDetailView = ()=>{
                                                                 className: "w-14 h-10 text-center bg-transparent text-white font-bold text-sm focus:outline-none"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 320,
+                                                                lineNumber: 467,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -934,13 +1052,13 @@ const ProductDetailView = ()=>{
                                                                 children: "+"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 328,
+                                                                lineNumber: 480,
                                                                 columnNumber: 19
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 311,
+                                                        lineNumber: 457,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -959,24 +1077,24 @@ const ProductDetailView = ()=>{
                                                                 ]
                                                             }, preset, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 341,
+                                                                lineNumber: 493,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 339,
+                                                        lineNumber: 491,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 310,
+                                                lineNumber: 456,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 303,
+                                        lineNumber: 448,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -991,20 +1109,20 @@ const ProductDetailView = ()=>{
                                                         className: "fa-solid fa-cart-plus text-sm"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 361,
+                                                        lineNumber: 513,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                         children: "THÊM VÀO GIỎ HÀNG"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 362,
+                                                        lineNumber: 514,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 356,
+                                                lineNumber: 508,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1016,26 +1134,26 @@ const ProductDetailView = ()=>{
                                                         className: "fa-solid fa-file-invoice-dollar text-sm"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 369,
+                                                        lineNumber: 522,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                         children: "MUA NGAY & BÁO GIÁ SỈ"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 370,
+                                                        lineNumber: 523,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 364,
+                                                lineNumber: 517,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 355,
+                                        lineNumber: 507,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1048,7 +1166,7 @@ const ProductDetailView = ()=>{
                                                         className: "fa-solid fa-box-open text-amber-400 text-sm shrink-0"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 377,
+                                                        lineNumber: 530,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1056,13 +1174,13 @@ const ProductDetailView = ()=>{
                                                         children: "Đóng gói sơn mài thủ công"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 378,
+                                                        lineNumber: 531,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 376,
+                                                lineNumber: 529,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1072,7 +1190,7 @@ const ProductDetailView = ()=>{
                                                         className: "fa-solid fa-truck-fast text-amber-400 text-sm shrink-0"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 381,
+                                                        lineNumber: 536,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1080,13 +1198,13 @@ const ProductDetailView = ()=>{
                                                         children: "Giao hỏa tốc toàn quốc"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 382,
+                                                        lineNumber: 537,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 380,
+                                                lineNumber: 535,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1096,7 +1214,7 @@ const ProductDetailView = ()=>{
                                                         className: "fa-solid fa-envelope-open-text text-amber-400 text-sm shrink-0"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 385,
+                                                        lineNumber: 542,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1104,31 +1222,31 @@ const ProductDetailView = ()=>{
                                                         children: "Tặng thiệp chúc độc quyền"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 386,
+                                                        lineNumber: 543,
                                                         columnNumber: 17
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 384,
+                                                lineNumber: 541,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 375,
+                                        lineNumber: 528,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                lineNumber: 202,
+                                lineNumber: 327,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                        lineNumber: 91,
+                        lineNumber: 207,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1159,12 +1277,12 @@ const ProductDetailView = ()=>{
                                         children: tab.label
                                     }, tab.id, false, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 401,
+                                        lineNumber: 560,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)))
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                lineNumber: 394,
+                                lineNumber: 553,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0)),
                             activeTab === 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1177,7 +1295,7 @@ const ProductDetailView = ()=>{
                                                 children: "Danh Mục Sản Vật Thượng Hạng"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 419,
+                                                lineNumber: 578,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -1185,7 +1303,7 @@ const ProductDetailView = ()=>{
                                                 children: "Hội Tụ Tinh Hoa Tết Cổ Truyền & Phong Vị Đương Đại"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 422,
+                                                lineNumber: 581,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1197,18 +1315,18 @@ const ProductDetailView = ()=>{
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 425,
+                                                lineNumber: 584,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 418,
+                                        lineNumber: 577,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4",
-                                        children: (product.delicacies || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PRODUCTS"][0].delicacies || []).map((del)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        children: (product.delicacies || []).map((del)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "p-4 rounded-xl bg-gradient-to-br from-[#45090e] to-[#2e0507] border border-amber-500/20 hover:border-amber-400/50 transition flex items-start gap-3.5",
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1217,12 +1335,12 @@ const ProductDetailView = ()=>{
                                                             className: `fa-solid ${del.icon} text-xl`
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 437,
+                                                            lineNumber: 596,
                                                             columnNumber: 23
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 436,
+                                                        lineNumber: 595,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1232,7 +1350,7 @@ const ProductDetailView = ()=>{
                                                                 children: del.name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 440,
+                                                                lineNumber: 599,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1240,7 +1358,7 @@ const ProductDetailView = ()=>{
                                                                 children: del.weightOrVolume
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 441,
+                                                                lineNumber: 602,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1248,30 +1366,30 @@ const ProductDetailView = ()=>{
                                                                 children: del.description
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 442,
+                                                                lineNumber: 605,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 439,
+                                                        lineNumber: 598,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, del.id, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 432,
+                                                lineNumber: 591,
                                                 columnNumber: 19
                                             }, ("TURBOPACK compile-time value", void 0)))
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 430,
+                                        lineNumber: 589,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                lineNumber: 417,
+                                lineNumber: 576,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             activeTab === 2 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1289,14 +1407,14 @@ const ProductDetailView = ()=>{
                                                             className: "fa-solid fa-crown text-[10px]"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 456,
+                                                            lineNumber: 621,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
-                                                        " ĐẶC QUYỀN DOANH NGHIỆP TẾT 2027"
+                                                        "ĐẶC QUYỀN DOANH NGHIỆP TẾT 2027"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                    lineNumber: 455,
+                                                    lineNumber: 620,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
@@ -1304,7 +1422,7 @@ const ProductDetailView = ()=>{
                                                     children: "Nghệ Thuật Chế Tác Sơn Mài & Đóng Gói Hoàng Gia"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                    lineNumber: 458,
+                                                    lineNumber: 624,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1312,7 +1430,7 @@ const ProductDetailView = ()=>{
                                                     children: "EleGift gìn giữ trọn vẹn tinh hoa làng nghề sơn mài truyền thống: Mỗi chiếc hộp đều trải qua 7 tầng sơn then, đánh bóng bằng tro trấu và lót lụa tơ tằm thượng hạng. Tặng kèm thiệp chúc Tết in riêng lời ngỏ từ Ban Lãnh Đạo và túi xách gấm sang trọng."
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                    lineNumber: 461,
+                                                    lineNumber: 627,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1325,14 +1443,14 @@ const ProductDetailView = ()=>{
                                                                     className: "fa-solid fa-check text-emerald-400"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 468,
+                                                                    lineNumber: 634,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
-                                                                " Miễn phí túi gấm & khay lụa"
+                                                                "Miễn phí túi gấm & khay lụa"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 467,
+                                                            lineNumber: 633,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1342,14 +1460,14 @@ const ProductDetailView = ()=>{
                                                                     className: "fa-solid fa-check text-emerald-400"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 471,
+                                                                    lineNumber: 638,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
-                                                                " Trả mẫu thực tế tận nơi trong 24h"
+                                                                "Trả mẫu thực tế tận nơi trong 24h"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 470,
+                                                            lineNumber: 637,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1359,26 +1477,26 @@ const ProductDetailView = ()=>{
                                                                     className: "fa-solid fa-check text-emerald-400"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 474,
+                                                                    lineNumber: 642,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
-                                                                " Hóa đơn VAT 100% hợp lệ"
+                                                                "Hóa đơn VAT 100% hợp lệ"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 473,
+                                                            lineNumber: 641,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                    lineNumber: 466,
+                                                    lineNumber: 632,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 454,
+                                            lineNumber: 619,
                                             columnNumber: 17
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1389,23 +1507,23 @@ const ProductDetailView = ()=>{
                                                 className: "rounded-xl border border-amber-500/30 shadow-xl max-h-48 object-cover"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 479,
+                                                lineNumber: 648,
                                                 columnNumber: 19
                                             }, ("TURBOPACK compile-time value", void 0))
                                         }, void 0, false, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 478,
+                                            lineNumber: 647,
                                             columnNumber: 17
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                    lineNumber: 453,
+                                    lineNumber: 618,
                                     columnNumber: 15
                                 }, ("TURBOPACK compile-time value", void 0))
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                lineNumber: 452,
+                                lineNumber: 617,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             activeTab === 3 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1416,7 +1534,7 @@ const ProductDetailView = ()=>{
                                         children: "Chứng Nhận Tiêu Chuẩn & Nguồn Gốc Xuất Xứ OCOP 2027"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 492,
+                                        lineNumber: 661,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1424,7 +1542,7 @@ const ProductDetailView = ()=>{
                                         children: "Tất cả sản vật cao cấp trong từng set quà EleGift đều có đầy đủ phiếu kiểm nghiệm an toàn vệ sinh thực phẩm (ATVSTP), chứng nhận tiêu chuẩn OCOP 4-5 sao và tem truy xuất nguồn gốc QR code độc quyền."
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 495,
+                                        lineNumber: 664,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1438,7 +1556,7 @@ const ProductDetailView = ()=>{
                                                         children: "✓ Vang Nhập Khẩu Chính Ngạch"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 500,
+                                                        lineNumber: 669,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1446,13 +1564,13 @@ const ProductDetailView = ()=>{
                                                         children: "Có tem hải quan và chứng nhận CO/CQ xuất xứ nhà làm vang Pháp & Ý."
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 501,
+                                                        lineNumber: 672,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 499,
+                                                lineNumber: 668,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1463,7 +1581,7 @@ const ProductDetailView = ()=>{
                                                         children: "✓ Yến Sào & Đông Trùng"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 504,
+                                                        lineNumber: 677,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1471,13 +1589,13 @@ const ProductDetailView = ()=>{
                                                         children: "Chứng nhận hàm lượng dược tính cao, không chất bảo quản, đạt chuẩn HACCP."
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 505,
+                                                        lineNumber: 680,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 503,
+                                                lineNumber: 676,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1488,7 +1606,7 @@ const ProductDetailView = ()=>{
                                                         children: "✓ Sơn Mài Truyền Thống"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 508,
+                                                        lineNumber: 685,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1496,25 +1614,25 @@ const ProductDetailView = ()=>{
                                                         children: "Nghệ nhân Hạ Thái & Tương Bình Hiệp chế tác 100% bằng sơn ta tự nhiên."
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 509,
+                                                        lineNumber: 688,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 507,
+                                                lineNumber: 684,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 498,
+                                        lineNumber: 667,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                lineNumber: 491,
+                                lineNumber: 660,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             activeTab === 4 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1529,7 +1647,7 @@ const ProductDetailView = ()=>{
                                                 children: "✦ BẢO CHỨNG NIỀM TIN DOANH NGHIỆP ✦"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 519,
+                                                lineNumber: 700,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -1537,13 +1655,13 @@ const ProductDetailView = ()=>{
                                                 children: "Đánh Giá & Trải Nghiệm Khách Hàng"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 522,
+                                                lineNumber: 703,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 518,
+                                        lineNumber: 699,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1562,7 +1680,7 @@ const ProductDetailView = ()=>{
                                                                     children: "4.9"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 532,
+                                                                    lineNumber: 713,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1570,13 +1688,13 @@ const ProductDetailView = ()=>{
                                                                     children: "/ 5"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 533,
+                                                                    lineNumber: 716,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 531,
+                                                            lineNumber: 712,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1586,41 +1704,41 @@ const ProductDetailView = ()=>{
                                                                     className: "fa-solid fa-star"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 536,
+                                                                    lineNumber: 721,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                     className: "fa-solid fa-star"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 537,
+                                                                    lineNumber: 722,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                     className: "fa-solid fa-star"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 538,
+                                                                    lineNumber: 723,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                     className: "fa-solid fa-star"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 539,
+                                                                    lineNumber: 724,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                     className: "fa-solid fa-star"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 540,
+                                                                    lineNumber: 725,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 535,
+                                                            lineNumber: 720,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1628,7 +1746,7 @@ const ProductDetailView = ()=>{
                                                             children: "Dựa trên 128 đánh giá xác thực từ doanh nghiệp"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 542,
+                                                            lineNumber: 727,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1638,26 +1756,26 @@ const ProductDetailView = ()=>{
                                                                     className: "fa-solid fa-circle-check text-emerald-400 text-xs"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 544,
+                                                                    lineNumber: 731,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                     children: "100% Khách hàng B2B hài lòng về chất lượng & tiến độ"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 545,
+                                                                    lineNumber: 732,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 543,
+                                                            lineNumber: 730,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                    lineNumber: 530,
+                                                    lineNumber: 711,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1674,13 +1792,13 @@ const ProductDetailView = ()=>{
                                                                             className: "fa-solid fa-star text-[10px] text-amber-400"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                            lineNumber: 552,
+                                                                            lineNumber: 741,
                                                                             columnNumber: 27
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 551,
+                                                                    lineNumber: 740,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1692,12 +1810,12 @@ const ProductDetailView = ()=>{
                                                                         }
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 555,
+                                                                        lineNumber: 744,
                                                                         columnNumber: 25
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 554,
+                                                                    lineNumber: 743,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1705,13 +1823,13 @@ const ProductDetailView = ()=>{
                                                                     children: "94%"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 557,
+                                                                    lineNumber: 749,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 550,
+                                                            lineNumber: 739,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1725,13 +1843,13 @@ const ProductDetailView = ()=>{
                                                                             className: "fa-solid fa-star text-[10px] text-amber-400"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                            lineNumber: 561,
+                                                                            lineNumber: 755,
                                                                             columnNumber: 27
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 560,
+                                                                    lineNumber: 754,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1743,12 +1861,12 @@ const ProductDetailView = ()=>{
                                                                         }
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 564,
+                                                                        lineNumber: 758,
                                                                         columnNumber: 25
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 563,
+                                                                    lineNumber: 757,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1756,19 +1874,19 @@ const ProductDetailView = ()=>{
                                                                     children: "6%"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 566,
+                                                                    lineNumber: 763,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 559,
+                                                            lineNumber: 753,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                    lineNumber: 549,
+                                                    lineNumber: 738,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1784,14 +1902,14 @@ const ProductDetailView = ()=>{
                                                                             className: "fa-solid fa-check text-emerald-400 text-xs"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                            lineNumber: 573,
+                                                                            lineNumber: 772,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
-                                                                        " Xác thực đơn hàng 100%"
+                                                                        "Xác thực đơn hàng 100%"
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 572,
+                                                                    lineNumber: 771,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1801,20 +1919,20 @@ const ProductDetailView = ()=>{
                                                                             className: "fa-solid fa-check text-emerald-400 text-xs"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                            lineNumber: 576,
+                                                                            lineNumber: 776,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
-                                                                        " Đánh giá người mua thực"
+                                                                        "Đánh giá người mua thực"
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 575,
+                                                                    lineNumber: 775,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 571,
+                                                            lineNumber: 770,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1826,37 +1944,37 @@ const ProductDetailView = ()=>{
                                                                     className: "fa-regular fa-heart text-xs"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 584,
+                                                                    lineNumber: 787,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                     children: "Viết Đánh Giá"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                    lineNumber: 585,
+                                                                    lineNumber: 788,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                            lineNumber: 579,
+                                                            lineNumber: 780,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                    lineNumber: 570,
+                                                    lineNumber: 769,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                            lineNumber: 529,
+                                            lineNumber: 710,
                                             columnNumber: 17
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 528,
+                                        lineNumber: 709,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1876,7 +1994,7 @@ const ProductDetailView = ()=>{
                                                                         children: "HQ"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 596,
+                                                                        lineNumber: 799,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1886,7 +2004,7 @@ const ProductDetailView = ()=>{
                                                                                 children: "Trần Hoàng Quân"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 600,
+                                                                                lineNumber: 803,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1894,19 +2012,19 @@ const ProductDetailView = ()=>{
                                                                                 children: "Giám đốc Đối ngoại • Tập đoàn V-Tech Group"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 601,
+                                                                                lineNumber: 806,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 599,
+                                                                        lineNumber: 802,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 595,
+                                                                lineNumber: 798,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1916,20 +2034,20 @@ const ProductDetailView = ()=>{
                                                                         className: "fa-solid fa-check text-[9px]"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 605,
+                                                                        lineNumber: 812,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                         children: "Đã xác thực mua 350 hộp B2B"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 606,
+                                                                        lineNumber: 813,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 604,
+                                                                lineNumber: 811,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1942,41 +2060,41 @@ const ProductDetailView = ()=>{
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 610,
+                                                                                lineNumber: 817,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 611,
+                                                                                lineNumber: 818,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 612,
+                                                                                lineNumber: 819,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 613,
+                                                                                lineNumber: 820,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 614,
+                                                                                lineNumber: 821,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 609,
+                                                                        lineNumber: 816,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1984,13 +2102,13 @@ const ProductDetailView = ()=>{
                                                                         children: "15/12/2026"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 616,
+                                                                        lineNumber: 823,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 608,
+                                                                lineNumber: 815,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1998,13 +2116,13 @@ const ProductDetailView = ()=>{
                                                                 children: '"Đặt 350 hộp Vạn Sự Khởi Sắc cho đối tác VIP và hội đồng quản trị. Nước sơn mài 7 lớp cực kỳ bóng và có độ sâu mỹ thuật cao, từng đường nét dát vàng truyền thống chuẩn xác và sắc sảo."'
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 618,
+                                                                lineNumber: 827,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 594,
+                                                        lineNumber: 797,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2014,26 +2132,26 @@ const ProductDetailView = ()=>{
                                                                 className: "fa-solid fa-gift text-[10px]"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 623,
+                                                                lineNumber: 832,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                 children: "Đỏ Phú Quý • Sơn mài thủ công"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 624,
+                                                                lineNumber: 833,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 622,
+                                                        lineNumber: 831,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 593,
+                                                lineNumber: 796,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2050,7 +2168,7 @@ const ProductDetailView = ()=>{
                                                                         children: "MP"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 631,
+                                                                        lineNumber: 840,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2060,7 +2178,7 @@ const ProductDetailView = ()=>{
                                                                                 children: "Nguyễn Mai Phương"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 635,
+                                                                                lineNumber: 844,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2068,19 +2186,19 @@ const ProductDetailView = ()=>{
                                                                                 children: "Trưởng phòng Mua sắm & C&B • VietBank"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 636,
+                                                                                lineNumber: 847,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 634,
+                                                                        lineNumber: 843,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 630,
+                                                                lineNumber: 839,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2090,20 +2208,20 @@ const ProductDetailView = ()=>{
                                                                         className: "fa-solid fa-check text-[9px]"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 640,
+                                                                        lineNumber: 853,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                         children: "Đã xác thực mua 180 hộp B2B"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 641,
+                                                                        lineNumber: 854,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 639,
+                                                                lineNumber: 852,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2116,41 +2234,41 @@ const ProductDetailView = ()=>{
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 645,
+                                                                                lineNumber: 858,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 646,
+                                                                                lineNumber: 859,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 647,
+                                                                                lineNumber: 860,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 648,
+                                                                                lineNumber: 861,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 649,
+                                                                                lineNumber: 862,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 644,
+                                                                        lineNumber: 857,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2158,13 +2276,13 @@ const ProductDetailView = ()=>{
                                                                         children: "22/12/2026"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 651,
+                                                                        lineNumber: 864,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 643,
+                                                                lineNumber: 856,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2172,13 +2290,13 @@ const ProductDetailView = ()=>{
                                                                 children: '"Khâu phục vụ cực kỳ chuyên nghiệp! Đội ngũ tư vấn mang mẫu tận nơi chỉ sau 4 tiếng, hỗ trợ xuất đầy đủ hóa đơn VAT và hợp đồng chuẩn chỉ trong ngày."'
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 653,
+                                                                lineNumber: 868,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 629,
+                                                        lineNumber: 838,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2188,26 +2306,26 @@ const ProductDetailView = ()=>{
                                                                 className: "fa-solid fa-gift text-[10px]"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 658,
+                                                                lineNumber: 873,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                 children: "Vàng Hoàng Gia • Kèm thiệp chúc mừng"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 659,
+                                                                lineNumber: 874,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 657,
+                                                        lineNumber: 872,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 628,
+                                                lineNumber: 837,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2224,7 +2342,7 @@ const ProductDetailView = ()=>{
                                                                         children: "LT"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 666,
+                                                                        lineNumber: 881,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2234,7 +2352,7 @@ const ProductDetailView = ()=>{
                                                                                 children: "Lê Minh Tuấn"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 670,
+                                                                                lineNumber: 885,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2242,19 +2360,19 @@ const ProductDetailView = ()=>{
                                                                                 children: "Phó TGĐ • Bất động sản SunLand"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 671,
+                                                                                lineNumber: 888,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 669,
+                                                                        lineNumber: 884,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 665,
+                                                                lineNumber: 880,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2264,20 +2382,20 @@ const ProductDetailView = ()=>{
                                                                         className: "fa-solid fa-check text-[9px]"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 675,
+                                                                        lineNumber: 894,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                         children: "Đã xác thực mua 120 hộp B2B"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 676,
+                                                                        lineNumber: 895,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 674,
+                                                                lineNumber: 893,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2290,41 +2408,41 @@ const ProductDetailView = ()=>{
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 680,
+                                                                                lineNumber: 899,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 681,
+                                                                                lineNumber: 900,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 682,
+                                                                                lineNumber: 901,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 683,
+                                                                                lineNumber: 902,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                                 className: "fa-solid fa-star"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                                lineNumber: 684,
+                                                                                lineNumber: 903,
                                                                                 columnNumber: 25
                                                                             }, ("TURBOPACK compile-time value", void 0))
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 679,
+                                                                        lineNumber: 898,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2332,13 +2450,13 @@ const ProductDetailView = ()=>{
                                                                         children: "05/01/2027"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                        lineNumber: 686,
+                                                                        lineNumber: 905,
                                                                         columnNumber: 23
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 678,
+                                                                lineNumber: 897,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2346,13 +2464,13 @@ const ProductDetailView = ()=>{
                                                                 children: '"Hộp gỗ sơn mài cầm rất đầm tay, bản lề và khóa mạ đồng tinh xảo, nắp đóng khít êm ái. Chai vang Bordeaux chính ngạch, yến sào chưng đông trùng nguyên sợi."'
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 688,
+                                                                lineNumber: 909,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 664,
+                                                        lineNumber: 879,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2362,44 +2480,44 @@ const ProductDetailView = ()=>{
                                                                 className: "fa-solid fa-gift text-[10px]"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 693,
+                                                                lineNumber: 914,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                 children: "Đỏ Phú Quý • Sơn mài dát vàng"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 694,
+                                                                lineNumber: 915,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 692,
+                                                        lineNumber: 913,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 663,
+                                                lineNumber: 878,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 592,
+                                        lineNumber: 795,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                lineNumber: 517,
+                                lineNumber: 698,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                        lineNumber: 393,
+                        lineNumber: 552,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2415,7 +2533,7 @@ const ProductDetailView = ()=>{
                                                 children: "Gợi Ý Mùa Tết 2027"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 706,
+                                                lineNumber: 927,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -2423,13 +2541,13 @@ const ProductDetailView = ()=>{
                                                 children: "Các Bộ Sưu Tập Quà Tết Cùng Phân Khúc"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 709,
+                                                lineNumber: 930,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 705,
+                                        lineNumber: 926,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2440,34 +2558,33 @@ const ProductDetailView = ()=>{
                                                 children: "Xem tất cả hộp quà Tết"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 717,
+                                                lineNumber: 938,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                 className: "fa-solid fa-chevron-right text-[10px]"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 718,
+                                                lineNumber: 939,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 713,
+                                        lineNumber: 934,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                lineNumber: 704,
+                                lineNumber: 925,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4",
-                                children: relatedProducts.map((rel)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: relatedProductsFiltered.map((rel)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         onClick: ()=>{
                                             navigateTo('product-detail', rel.id);
-                                            setActiveImage(rel.imageUrl);
                                         },
                                         className: "rounded-xl bg-gradient-to-b from-[#3a070a] to-[#250406] border border-amber-500/20 overflow-hidden hover:border-amber-400/60 transition group shadow-lg cursor-pointer",
                                         children: [
@@ -2480,7 +2597,7 @@ const ProductDetailView = ()=>{
                                                         className: "w-full h-full object-cover group-hover:scale-105 transition duration-500"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 733,
+                                                        lineNumber: 953,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     rel.badge && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2488,13 +2605,13 @@ const ProductDetailView = ()=>{
                                                         children: rel.badge
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 739,
+                                                        lineNumber: 959,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 732,
+                                                lineNumber: 952,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2505,7 +2622,7 @@ const ProductDetailView = ()=>{
                                                         children: rel.subtitle
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 745,
+                                                        lineNumber: 965,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h5", {
@@ -2513,7 +2630,7 @@ const ProductDetailView = ()=>{
                                                         children: rel.name
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 746,
+                                                        lineNumber: 968,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2524,7 +2641,7 @@ const ProductDetailView = ()=>{
                                                                 children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(rel.price)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 750,
+                                                                lineNumber: 972,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2532,48 +2649,48 @@ const ProductDetailView = ()=>{
                                                                 children: "CK đến 25%"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                                lineNumber: 753,
+                                                                lineNumber: 975,
                                                                 columnNumber: 21
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                        lineNumber: 749,
+                                                        lineNumber: 971,
                                                         columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                                lineNumber: 744,
+                                                lineNumber: 964,
                                                 columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, rel.id, true, {
                                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                        lineNumber: 724,
+                                        lineNumber: 945,
                                         columnNumber: 15
                                     }, ("TURBOPACK compile-time value", void 0)))
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                                lineNumber: 722,
+                                lineNumber: 943,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                        lineNumber: 703,
+                        lineNumber: 924,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-                lineNumber: 90,
+                lineNumber: 206,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/presentation/views/ProductDetailView.tsx",
-        lineNumber: 51,
+        lineNumber: 159,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };

@@ -8,9 +8,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../../application/AppContext';
 import { formatVND } from '../../domain/pricing';
+import type { Order } from '../../domain/types';
 
 export const CheckoutView: React.FC = () => {
-  const { cartItems, cartTotals, placeOrder, navigateTo } = useApp();
+  const { cartItems, cartTotals, navigateTo, showToast, clearCart, couponCode, couponApplied, } = useApp();
 
   const [form, setForm] = useState({
     recipientName: 'Nguyễn Hoàng Nam',
@@ -34,30 +35,101 @@ export const CheckoutView: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedOrderCode, setCompletedOrderCode] = useState<string | null>(null);
+  const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (cartItems.length === 0) {
+      showToast('Giỏ hàng đang trống. Vui lòng chọn sản phẩm.', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const order = placeOrder({
-        recipientName: form.recipientName,
-        phone: form.phone,
-        email: form.email,
-        shippingAddress: `${form.address}, ${form.district}, ${form.city}`,
-        deliveryCity: form.city,
-        hasVatInvoice: form.requireVat,
-        companyName: form.companyName,
-        taxCode: form.taxCode,
-        companyAddress: form.companyAddress,
-        invoiceEmail: form.invoiceEmail,
-        giftCardRequested: form.giftCard,
-        paymentMethod: form.paymentMethod,
+    try {
+      // Lấy sessionId đã được AppContext lưu trong localStorage
+      const sessionId = localStorage.getItem('elegift_session_id');
+
+      if (!sessionId) {
+        throw new Error('Không tìm thấy phiên giỏ hàng. Vui lòng tải lại trang.');
+      }
+
+      // Gửi thông tin đặt hàng đến Backend
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+
+          // Thông tin người nhận
+          recipientName: form.recipientName,
+          phone: form.phone,
+          email: form.email,
+
+          // Địa chỉ giao hàng
+          city: form.city,
+          district: form.district,
+          address: form.address,
+
+          // Thời gian giao hàng
+          deliveryTime: form.deliveryTime,
+
+          // Hóa đơn VAT
+          requireVat: form.requireVat,
+          companyName: form.companyName,
+          taxCode: form.taxCode,
+          companyAddress: form.companyAddress,
+          invoiceEmail: form.invoiceEmail,
+
+          // Thiệp chúc Tết
+          giftCard: form.giftCard,
+
+          // Ghi chú
+          customNotes: form.customNotes,
+
+          // Thanh toán
+          paymentMethod: form.paymentMethod,
+          couponCode: couponApplied ? couponCode : undefined,
+        }),
       });
 
-      setIsSubmitting(false);
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Đặt hàng thất bại. Vui lòng thử lại.'
+        );
+      }
+
+      // Backend trả về thông tin đơn hàng
+      const order = result.data?.order ?? result.data;
+
+      if (!order?.orderCode) {
+        throw new Error('Đơn hàng đã được xử lý nhưng không nhận được mã đơn.');
+      }
+      // Xóa giỏ hàng trên Frontend sau khi Backend xác nhận thành công
+      clearCart();
+      setCompletedOrder(order);
+      // Cập nhật giao diện thành công
       setCompletedOrderCode(order.orderCode);
-    }, 700);
+
+      showToast('Đặt hàng thành công!', 'success');
+
+    } catch (error) {
+      console.error('Lỗi đặt hàng:', error);
+
+      showToast(
+        error instanceof Error
+          ? error.message
+          : 'Có lỗi xảy ra khi đặt hàng.',
+        'error'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (completedOrderCode) {
@@ -95,7 +167,7 @@ export const CheckoutView: React.FC = () => {
             <div className="flex justify-between pt-1 border-t border-amber-500/15">
               <span className="text-amber-300 font-semibold">Tổng thanh toán:</span>
               <span className="font-bold text-amber-300 font-serif-tet">
-                {formatVND(cartTotals.grandTotal || 33525000)}
+                {formatVND(completedOrder?.grandTotal ?? 0)}
               </span>
             </div>
           </div>

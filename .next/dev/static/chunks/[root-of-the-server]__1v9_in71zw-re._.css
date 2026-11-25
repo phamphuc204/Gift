@@ -1330,6 +1330,10 @@
     max-height: calc(var(--spacing) * 48);
   }
 
+  .min-h-\[60vh\] {
+    min-height: 60vh;
+  }
+
   .min-h-\[70vh\] {
     min-height: 70vh;
   }
@@ -2169,6 +2173,10 @@
     .border-yellow-400\/40 {
       border-color: color-mix(in oklab, var(--color-yellow-400) 40%, transparent);
     }
+  }
+
+  .border-t-transparent {
+    border-top-color: #0000;
   }
 
   .bg-\[\#1A4338\] {
@@ -4607,6 +4615,10 @@
     opacity: .15;
   }
 
+  .opacity-30 {
+    opacity: .3;
+  }
+
   .opacity-70 {
     opacity: .7;
   }
@@ -4777,10 +4789,6 @@
   .drop-shadow-\[0_4px_16px_rgba\(245\,197\,66\,0\.3\)\] {
     --tw-drop-shadow-size: drop-shadow(0 4px 16px var(--tw-drop-shadow-color, #f5c5424d));
     --tw-drop-shadow: var(--tw-drop-shadow-size);
-    filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, );
-  }
-
-  .filter {
     filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, );
   }
 
@@ -5313,6 +5321,10 @@
 
   .disabled\:pointer-events-none:disabled {
     pointer-events: none;
+  }
+
+  .disabled\:cursor-not-allowed:disabled {
+    cursor: not-allowed;
   }
 
   .disabled\:opacity-40:disabled {

@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -5,10 +6,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ScreenId, CartItem, Product, Order, UserProfile } from '../domain/types';
-import { calculateCartTotals, CartCalculationResult } from '../domain/pricing';
-import { PRODUCTS, INITIAL_ORDERS } from '../infrastructure/mockData';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+} from 'react';
+
+import {
+  ScreenId,
+  CartItem,
+  Product,
+  Order,
+  UserProfile,
+} from '../domain/types';
+
+import {
+  calculateCartTotals,
+  CartCalculationResult,
+} from '../domain/pricing';
+
+
 
 export const INITIAL_USER: UserProfile = {
   id: 'usr-b2b-01',
@@ -42,25 +60,37 @@ interface AppContextType {
   isAIModalOpen: boolean;
   cartTotals: CartCalculationResult;
   currentUser: UserProfile | null;
-  // Actions
+
   navigateTo: (screen: ScreenId, productId?: string) => void;
-  login: (email: string, password?: string, role?: 'b2b' | 'personal', rememberMe?: boolean) => boolean;
+  login: (
+    email: string,
+    password?: string,
+    role?: 'b2b' | 'personal',
+    rememberMe?: boolean
+  ) => boolean;
   register: (profileData: Partial<UserProfile>) => boolean;
   updateUserProfile: (profileData: Partial<UserProfile>) => void;
   logout: () => void;
+
   addToCart: (
     product: Product,
     quantity?: number,
     variant?: string,
     variantLabel?: string
   ) => void;
+
   updateCartQuantity: (itemId: string, delta: number) => void;
   setCartQuantity: (itemId: string, quantity: number) => void;
   removeFromCart: (itemId: string) => void;
   clearCart: () => void;
+
   applyCoupon: (code: string) => boolean;
   placeOrder: (orderPayload: Partial<Order>) => Order;
-  showToast: (message: string, type?: 'success' | 'info' | 'error') => void;
+
+  showToast: (
+    message: string,
+    type?: 'success' | 'info' | 'error'
+  ) => void;
   hideToast: () => void;
   openAIModal: () => void;
   closeAIModal: () => void;
@@ -68,21 +98,333 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const SESSION_STORAGE_KEY = 'elegift_session_id';
+
+interface CartApiItem {
+  id: string;
+  productId: string;
+  product: Product;
+  quantity: number;
+  selectedVariant?: string;
+  selectedVariantLabel?: string;
+  unitPrice: number;
+}
+
+interface CartApiResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    items?: CartApiItem[];
+  };
+}
+interface OrdersApiResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    total: number;
+    orders: Order[];
+  };
+}
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
-  const [selectedProductId, setSelectedProductId] = useState<string>('van-su-khoi-sac');
-  const [couponCode, setCouponCode] = useState<string>('TET2027');
-  const [couponApplied, setCouponApplied] = useState<boolean>(true);
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(INITIAL_USER);
-  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
+
+  const [selectedProductId, setSelectedProductId] =
+    useState<string>('van-su-khoi-sac');
+
+  const [couponCode, setCouponCode] = useState<string>('');
+  const [couponApplied, setCouponApplied] = useState<boolean>(false);
+
+  const [currentUser, setCurrentUser] =
+    useState<UserProfile | null>(INITIAL_USER);
+
+  const [orders, setOrders] = useState<Order[]>([]);
+
   const [isAIModalOpen, setIsAIModalOpen] = useState<boolean>(false);
+
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  const [sessionId, setSessionId] = useState<string>('');
+
+  const [isCartLoading, setIsCartLoading] = useState<boolean>(true);
+
   const [toast, setToast] = useState<ToastState>({
     show: false,
     message: '',
     type: 'success',
   });
 
-  const login = (email: string, _password?: string, role: 'b2b' | 'personal' = 'b2b', _rememberMe?: boolean) => {
+  // ============================================
+  // ORDERS API - GET ORDERS
+  // ============================================
+
+  useEffect(() => {
+    // Chỉ tải đơn hàng khi người dùng mở trang tài khoản
+    if (currentScreen !== 'account') return;
+
+    let cancelled = false;
+
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch('/api/orders', {
+          method: 'GET',
+          cache: 'no-store',
+        });
+
+        const result: OrdersApiResponse = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || 'Không thể tải danh sách đơn hàng.'
+          );
+        }
+
+        if (cancelled) return;
+
+        setOrders(result.data?.orders || []);
+      } catch (error) {
+        console.error('Lỗi tải danh sách đơn hàng:', error);
+
+        if (!cancelled) {
+          showToast(
+            'Không thể tải lịch sử đơn hàng. Vui lòng thử lại.',
+            'error'
+          );
+        }
+      }
+    };
+
+    fetchOrders();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentScreen]);
+
+  // ============================================
+  // TOAST
+  // ============================================
+
+  const showToast = (
+    message: string,
+    type: 'success' | 'info' | 'error' = 'success'
+  ) => {
+    setToast({
+      show: true,
+      message,
+      type,
+    });
+  };
+
+  const hideToast = () => {
+    setToast((prev) => ({
+      ...prev,
+      show: false,
+    }));
+  };
+
+  useEffect(() => {
+    if (!toast.show) return;
+
+    const timer = setTimeout(() => {
+      hideToast();
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [toast.show]);
+
+  // ============================================
+  // SESSION ID
+  // ============================================
+
+  useEffect(() => {
+    let currentSessionId = localStorage.getItem(SESSION_STORAGE_KEY);
+
+    if (!currentSessionId) {
+      currentSessionId = `session-${crypto.randomUUID()}`;
+
+      localStorage.setItem(
+        SESSION_STORAGE_KEY,
+        currentSessionId
+      );
+    }
+
+    setSessionId(currentSessionId);
+  }, []);
+
+  // ============================================
+  // CART API - GET CART
+  // ============================================
+
+  const syncCartFromApi = async (currentSessionId: string) => {
+    try {
+      const response = await fetch(
+        `/api/cart?sessionId=${encodeURIComponent(currentSessionId)}`,
+        {
+          method: 'GET',
+          cache: 'no-store',
+        }
+      );
+
+      const result: CartApiResponse = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Không thể tải giỏ hàng.'
+        );
+      }
+
+      const apiItems = result.data?.items || [];
+
+      const mappedItems: CartItem[] = apiItems
+        .filter((item) => item.product)
+        .map((item) => ({
+          id: item.id,
+          productId: item.productId,
+          product: item.product,
+          quantity: item.quantity,
+          selectedVariant: item.selectedVariant || 'standard',
+          selectedVariantLabel:
+            item.selectedVariantLabel || 'Phiên bản tiêu chuẩn',
+          unitPrice: item.unitPrice,
+        }));
+
+      setCartItems(mappedItems);
+
+      return mappedItems;
+    } catch (error) {
+      console.error('Lỗi đồng bộ giỏ hàng:', error);
+
+      throw error;
+    }
+  };
+
+  // Tự động tải giỏ hàng khi đã có sessionId
+  useEffect(() => {
+    if (!sessionId) return;
+
+    let cancelled = false;
+
+    const loadCart = async () => {
+      try {
+        const response = await fetch(
+          `/api/cart?sessionId=${encodeURIComponent(sessionId)}`,
+          {
+            method: 'GET',
+            cache: 'no-store',
+          }
+        );
+
+        const result: CartApiResponse = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || 'Không thể tải giỏ hàng.'
+          );
+        }
+
+        if (cancelled) return;
+
+        const apiItems = result.data?.items || [];
+
+        const mappedItems: CartItem[] = apiItems
+          .filter((item) => item.product)
+          .map((item) => ({
+            id: item.id,
+            productId: item.productId,
+            product: item.product,
+            quantity: item.quantity,
+            selectedVariant: item.selectedVariant || 'standard',
+            selectedVariantLabel:
+              item.selectedVariantLabel || 'Phiên bản tiêu chuẩn',
+            unitPrice: item.unitPrice,
+          }));
+
+        setCartItems(mappedItems);
+      } catch (error) {
+        console.error('Không thể tải giỏ hàng:', error);
+
+        if (!cancelled) {
+          showToast(
+            'Không thể tải giỏ hàng. Vui lòng thử tải lại trang.',
+            'error'
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsCartLoading(false);
+        }
+      }
+    };
+
+    loadCart();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
+  // Đảm bảo có sessionId trước khi gọi Cart API
+  const ensureSessionId = (): string => {
+    if (sessionId) return sessionId;
+
+    let currentSessionId = localStorage.getItem(SESSION_STORAGE_KEY);
+
+    if (!currentSessionId) {
+      currentSessionId = `session-${crypto.randomUUID()}`;
+
+      localStorage.setItem(
+        SESSION_STORAGE_KEY,
+        currentSessionId
+      );
+    }
+
+    setSessionId(currentSessionId);
+
+    return currentSessionId;
+  };
+
+  // ============================================
+  // CART TOTALS
+  // ============================================
+
+  const cartTotals = calculateCartTotals(
+    cartItems,
+    couponApplied ? couponCode : undefined
+  );
+
+  // ============================================
+  // NAVIGATION
+  // ============================================
+
+  const navigateTo = (
+    screen: ScreenId,
+    productId?: string
+  ) => {
+    if (productId) {
+      setSelectedProductId(productId);
+    }
+
+    setCurrentScreen(screen);
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
+  // ============================================
+  // LOGIN
+  // ============================================
+
+  const login = (
+    email: string,
+    _password?: string,
+    role: 'b2b' | 'personal' = 'b2b',
+    _rememberMe?: boolean
+  ) => {
     const isVingroup =
       email.toLowerCase().includes('vingroup') ||
       email === '' ||
@@ -90,10 +432,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const user: UserProfile = {
       id: `usr-${Date.now()}`,
-      name: isVingroup ? 'Nguyễn Văn A' : (email.split('@')[0] || 'Khách Hàng VIP'),
+      name: isVingroup
+        ? 'Nguyễn Văn A'
+        : email.split('@')[0] || 'Khách Hàng VIP',
       email: email || 'van.a@vingroup.net',
       phone: '0912 345 678',
-      role: role,
+      role,
       companyName:
         role === 'b2b'
           ? isVingroup
@@ -101,16 +445,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             : 'Công Ty CP Đối Tác Doanh Nghiệp'
           : undefined,
       taxCode: role === 'b2b' ? '0101245486' : undefined,
-      position: role === 'b2b' ? 'Quản lý thu mua & Đối ngoại' : 'Khách hàng thân thiết',
+      position:
+        role === 'b2b'
+          ? 'Quản lý thu mua & Đối ngoại'
+          : 'Khách hàng thân thiết',
       address: 'Tòa tháp Symphony, Chu Huy Mân, Long Biên',
       city: 'Hà Nội',
       tier: 'Gold',
       accumulatedBoxes: 125,
     };
+
     setCurrentUser(user);
-    showToast(`Đăng nhập thành công! Chào mừng ${user.name}.`, 'success');
+
+    showToast(
+      `Đăng nhập thành công! Chào mừng ${user.name}.`,
+      'success'
+    );
+
     return true;
   };
+
+  // ============================================
+  // REGISTER
+  // ============================================
 
   const register = (profileData: Partial<UserProfile>) => {
     const newUser: UserProfile = {
@@ -119,185 +476,335 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       email: profileData.email || 'doanhnghiep@company.vn',
       phone: profileData.phone || '0912 345 678',
       role: profileData.role || 'b2b',
+
       companyName:
         profileData.role === 'personal'
           ? undefined
           : profileData.companyName || 'Công Ty Cổ Phần Mới',
-      taxCode: profileData.role === 'personal' ? undefined : profileData.taxCode || '0109988776',
+
+      taxCode:
+        profileData.role === 'personal'
+          ? undefined
+          : profileData.taxCode || '0109988776',
+
       position:
         profileData.role === 'personal'
           ? 'Khách hàng cá nhân'
           : profileData.position || 'Đại diện ủy quyền thu mua',
+
       address: profileData.address || 'Hà Nội',
       city: profileData.city || 'Hà Nội',
       tier: 'Gold',
       accumulatedBoxes: 0,
     };
+
     setCurrentUser(newUser);
-    showToast(`Tạo tài khoản thành công! Chào mừng ${newUser.name} đến với EleGift.`, 'success');
+
+    showToast(
+      `Tạo tài khoản thành công! Chào mừng ${newUser.name} đến với EleGift.`,
+      'success'
+    );
+
     return true;
   };
 
-  const updateUserProfile = (profileData: Partial<UserProfile>) => {
+  // ============================================
+  // UPDATE USER PROFILE
+  // ============================================
+
+  const updateUserProfile = (
+    profileData: Partial<UserProfile>
+  ) => {
     setCurrentUser((prev) => {
       if (!prev) return null;
-      return { ...prev, ...profileData };
+
+      return {
+        ...prev,
+        ...profileData,
+      };
     });
-    showToast('Đã lưu và đồng bộ thông tin tài khoản & doanh nghiệp thành công!', 'success');
+
+    showToast(
+      'Đã lưu và đồng bộ thông tin tài khoản & doanh nghiệp thành công!',
+      'success'
+    );
   };
+
+  // ============================================
+  // LOGOUT
+  // ============================================
 
   const logout = () => {
     setCurrentUser(null);
-    showToast('Đã đăng xuất tài khoản an toàn.', 'info');
+
+    showToast(
+      'Đã đăng xuất tài khoản an toàn.',
+      'info'
+    );
   };
 
-  // Seed default cart items:
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    const prod1 = PRODUCTS.find((p) => p.id === 'van-su-khoi-sac') || PRODUCTS[0];
-    const prod2 = PRODUCTS.find((p) => p.id === 'long-phung-hoa-minh') || PRODUCTS[1];
-    return [
-      {
-        id: 'cart-item-1',
-        productId: prod1.id,
-        product: prod1,
-        quantity: 20,
-        selectedVariant: 'do-phu-quy',
-        selectedVariantLabel: 'Đỏ Phú Quý • Hộp sơn mài cao cấp',
-        unitPrice: 1250000,
-      },
-      {
-        id: 'cart-item-2',
-        productId: prod2.id,
-        product: prod2,
-        quantity: 5,
-        selectedVariant: 'mun-hoang-gia',
-        selectedVariantLabel: 'Gỗ Mun Hoàng Gia • Single Malt Whisky',
-        unitPrice: 2450000,
-      },
-    ];
-  });
+  // ============================================
+  // CART API - ADD TO CART
+  // ============================================
 
-  const cartTotals = calculateCartTotals(
-    cartItems,
-    couponApplied ? couponCode : undefined
-  );
-
-  const navigateTo = (screen: ScreenId, productId?: string) => {
-    if (productId) {
-      setSelectedProductId(productId);
-    }
-    setCurrentScreen(screen);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
-    setToast({ show: true, message, type });
-  };
-
-  const hideToast = () => {
-    setToast((prev) => ({ ...prev, show: false }));
-  };
-
-  useEffect(() => {
-    if (toast.show) {
-      const timer = setTimeout(() => {
-        hideToast();
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast.show]);
-
-  const addToCart = (
+  const addToCart = async (
     product: Product,
     quantity = 1,
-    variant = 'standard',
+    variant = 'do-phu-quy',
     variantLabel?: string
   ) => {
-    setCartItems((prev) => {
-      const existingIndex = prev.findIndex(
-        (item) => item.productId === product.id && item.selectedVariant === variant
+    try {
+      const currentSessionId = ensureSessionId();
+
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: currentSessionId,
+          productId: product.id,
+          productSkuId: variant,
+          quantity,
+        }),
+      });
+
+      const result: CartApiResponse = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Không thể thêm sản phẩm vào giỏ hàng.'
+        );
+      }
+
+      await syncCartFromApi(currentSessionId);
+
+      showToast(
+        `Đã thêm ${quantity} hộp "${product.name}" vào giỏ hàng Tết!`,
+        'success'
+      );
+    } catch (error) {
+      console.error('Lỗi thêm vào giỏ hàng:', error);
+
+      showToast(
+        error instanceof Error
+          ? error.message
+          : 'Không thể thêm sản phẩm vào giỏ hàng.',
+        'error'
+      );
+    }
+  };
+
+  // ============================================
+  // CART API - UPDATE QUANTITY
+  // ============================================
+
+  const setCartQuantity = async (
+    itemId: string,
+    quantity: number
+  ) => {
+    try {
+      const currentSessionId = ensureSessionId();
+
+      if (quantity <= 0) {
+        await removeFromCart(itemId);
+        return;
+      }
+
+      const response = await fetch(
+        `/api/cart/items/${encodeURIComponent(itemId)}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionId: currentSessionId,
+            quantity,
+          }),
+        }
       );
 
-      if (existingIndex > -1) {
-        const next = [...prev];
-        next[existingIndex] = {
-          ...next[existingIndex],
-          quantity: next[existingIndex].quantity + quantity,
-        };
-        return next;
-      } else {
-        const newItem: CartItem = {
-          id: `cart-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-          productId: product.id,
-          product,
-          quantity,
-          selectedVariant: variant,
-          selectedVariantLabel: variantLabel || (variant === 'standard' ? 'Phiên bản tiêu chuẩn' : variant),
-          unitPrice: product.price,
-        };
-        return [...prev, newItem];
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Không thể cập nhật số lượng.'
+        );
       }
-    });
 
-    showToast(`Đã thêm ${quantity} hộp "${product.name}" vào giỏ hàng Tết!`, 'success');
+      await syncCartFromApi(currentSessionId);
+    } catch (error) {
+      console.error('Lỗi cập nhật giỏ hàng:', error);
+
+      showToast(
+        error instanceof Error
+          ? error.message
+          : 'Không thể cập nhật số lượng sản phẩm.',
+        'error'
+      );
+    }
   };
 
-  const updateCartQuantity = (itemId: string, delta: number) => {
-    setCartItems((prev) =>
-      prev
-        .map((item) => {
-          if (item.id === itemId) {
-            const nextQty = item.quantity + delta;
-            return nextQty > 0 ? { ...item, quantity: nextQty } : null;
-          }
-          return item;
-        })
-        .filter((item): item is CartItem => item !== null)
+  const updateCartQuantity = (
+    itemId: string,
+    delta: number
+  ) => {
+    const currentItem = cartItems.find(
+      (item) => item.id === itemId
     );
-  };
 
-  const setCartQuantity = (itemId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId);
+    if (!currentItem) return;
+
+    const nextQuantity = currentItem.quantity + delta;
+
+    if (nextQuantity <= 0) {
+      void removeFromCart(itemId);
       return;
     }
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, quantity } : item))
-    );
+
+    void setCartQuantity(itemId, nextQuantity);
   };
 
-  const removeFromCart = (itemId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== itemId));
-    showToast('Đã xóa món quà khỏi giỏ hàng.', 'info');
+  // ============================================
+  // CART API - REMOVE ITEM
+  // ============================================
+
+  const removeFromCart = async (itemId: string) => {
+    try {
+      const currentSessionId = ensureSessionId();
+
+      const response = await fetch(
+        `/api/cart/items/${encodeURIComponent(itemId)}?sessionId=${encodeURIComponent(currentSessionId)}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Không thể xóa sản phẩm.'
+        );
+      }
+
+      await syncCartFromApi(currentSessionId);
+
+      showToast(
+        'Đã xóa món quà khỏi giỏ hàng.',
+        'info'
+      );
+    } catch (error) {
+      console.error('Lỗi xóa sản phẩm:', error);
+
+      showToast(
+        error instanceof Error
+          ? error.message
+          : 'Không thể xóa sản phẩm khỏi giỏ hàng.',
+        'error'
+      );
+    }
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-    showToast('Đã làm trống giỏ quà Tết.', 'info');
+  // ============================================
+  // CART API - CLEAR CART
+  // ============================================
+
+  const clearCart = async () => {
+    try {
+      const currentSessionId = ensureSessionId();
+
+      const response = await fetch(
+        `/api/cart?sessionId=${encodeURIComponent(currentSessionId)}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Không thể làm trống giỏ hàng.'
+        );
+      }
+
+      setCartItems([]);
+
+      showToast(
+        'Đã làm trống giỏ quà Tết.',
+        'info'
+      );
+    } catch (error) {
+      console.error('Lỗi làm trống giỏ hàng:', error);
+
+      showToast(
+        error instanceof Error
+          ? error.message
+          : 'Không thể làm trống giỏ hàng.',
+        'error'
+      );
+    }
   };
+
+  // ============================================
+  // COUPON
+  // ============================================
 
   const applyCoupon = (code: string): boolean => {
     const trimmed = code.trim().toUpperCase();
-    if (trimmed === 'TET2027' || trimmed === 'B2BVIP') {
+
+    if (
+      trimmed === 'TET2027' ||
+      trimmed === 'B2BVIP'
+    ) {
       setCouponCode(trimmed);
       setCouponApplied(true);
-      showToast(`Mã ưu đãi "${trimmed}" đã được xác thực thành công!`, 'success');
+
+      showToast(
+        `Mã ưu đãi "${trimmed}" đã được xác thực thành công!`,
+        'success'
+      );
+
       return true;
-    } else {
-      showToast('Mã ưu đãi không hợp lệ hoặc đã hết hạn.', 'error');
-      return false;
     }
+
+    showToast(
+      'Mã ưu đãi không hợp lệ hoặc đã hết hạn.',
+      'error'
+    );
+
+    return false;
   };
 
-  const placeOrder = (payload: Partial<Order>): Order => {
-    const newOrderCode = `#EG-${Math.floor(100000 + Math.random() * 900000)}`;
+  // ============================================
+  // PLACE ORDER
+  // Lưu ý: Phần tạo đơn hàng vẫn đang dùng logic cũ.
+  // Sẽ tích hợp Orders API ở bước tiếp theo.
+  // ============================================
+
+  const placeOrder = (
+    payload: Partial<Order>
+  ): Order => {
+    const newOrderCode = `#EG-${Math.floor(
+      100000 + Math.random() * 900000
+    )}`;
+
     const now = new Date();
-    const dateFormatted = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} (${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')})`;
+
+    const dateFormatted =
+      `${now.getDate().toString().padStart(2, '0')}/` +
+      `${(now.getMonth() + 1).toString().padStart(2, '0')}/` +
+      `${now.getFullYear()} (` +
+      `${now.getHours().toString().padStart(2, '0')}:` +
+      `${now.getMinutes().toString().padStart(2, '0')})`;
 
     const orderItems = cartItems.map((item) => ({
       productId: item.productId,
       title: item.product.name,
-      subtitle: item.selectedVariantLabel || item.product.subtitle,
+      subtitle:
+        item.selectedVariantLabel || item.product.subtitle,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       totalPrice: item.unitPrice * item.quantity,
@@ -314,38 +821,116 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: dateFormatted,
       status: 'packaging',
       statusText: 'Đang kiểm định & Đóng gói sơn mài',
-      recipientName: payload.recipientName || 'Nguyễn Hoàng Nam',
-      phone: payload.phone || '0988 234 567',
-      email: payload.email || 'hoangnam.b2b@vietcorp.vn',
+
+      recipientName:
+        payload.recipientName || 'Nguyễn Hoàng Nam',
+
+      phone:
+        payload.phone || '0988 234 567',
+
+      email:
+        payload.email || 'hoangnam.b2b@vietcorp.vn',
+
       shippingAddress:
-        payload.shippingAddress || 'Tầng 15, Tòa tháp Capital Tower, 109 Trần Hưng Đạo',
-      deliveryCity: payload.deliveryCity || 'Hà Nội',
-      estimatedDelivery: 'Trước ngày 23 Tháng Chạp (Tết Ông Táo)',
+        payload.shippingAddress ||
+        'Tầng 15, Tòa tháp Capital Tower, 109 Trần Hưng Đạo',
+
+      deliveryCity:
+        payload.deliveryCity || 'Hà Nội',
+
+      estimatedDelivery:
+        'Trước ngày 23 Tháng Chạp (Tết Ông Táo)',
+
       items: orderItems,
+
       totalBoxes: cartTotals.totalBoxes,
       subtotal: cartTotals.subtotal,
       discountAmount: cartTotals.discountAmount,
       discountPercentage: cartTotals.discountPercentage,
       vatAmount: cartTotals.vatAmount,
       grandTotal: cartTotals.grandTotal,
+
       hasVatInvoice: !!payload.hasVatInvoice,
-      companyName: payload.companyName || 'Công Ty CP Tập Đoàn Đầu Tư & Thương Mại Việt Nam',
-      taxCode: payload.taxCode || '0108928392',
+
+      companyName:
+        payload.companyName ||
+        'Công Ty CP Tập Đoàn Đầu Tư & Thương Mại Việt Nam',
+
+      taxCode:
+        payload.taxCode || '0108928392',
+
       companyAddress:
-        payload.companyAddress || '109 Trần Hưng Đạo, P. Cửa Nam, Quận Hoàn Kiếm, TP. Hà Nội',
-      invoiceEmail: payload.invoiceEmail || 'ketoan@vietcorp.vn',
+        payload.companyAddress ||
+        '109 Trần Hưng Đạo, P. Cửa Nam, Quận Hoàn Kiếm, TP. Hà Nội',
+
+      invoiceEmail:
+        payload.invoiceEmail || 'ketoan@vietcorp.vn',
+
       giftCardRequested: payload.giftCardRequested,
+
       paymentMethod: payload.paymentMethod || 'vietqr',
     };
 
-    setOrders((prev) => [newOrder, ...prev]);
-    setCartItems([]);
-    showToast(`Đặt hàng thành công! Mã đơn của Quý khách là ${newOrderCode}`, 'success');
+    setOrders((prev) => [
+      newOrder,
+      ...prev,
+    ]);
+
+    // Đồng bộ việc xóa giỏ hàng trên Backend
+    void clearCartAfterOrder();
+
+    showToast(
+      `Đặt hàng thành công! Mã đơn của Quý khách là ${newOrderCode}`,
+      'success'
+    );
+
     return newOrder;
   };
 
-  const openAIModal = () => setIsAIModalOpen(true);
-  const closeAIModal = () => setIsAIModalOpen(false);
+  // Xóa giỏ hàng Backend sau khi tạo đơn hàng bằng logic hiện tại
+  const clearCartAfterOrder = async () => {
+    try {
+      const currentSessionId = ensureSessionId();
+
+      const response = await fetch(
+        `/api/cart?sessionId=${encodeURIComponent(currentSessionId)}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || 'Không thể đồng bộ giỏ hàng.'
+        );
+      }
+
+      setCartItems([]);
+    } catch (error) {
+      console.error(
+        'Không thể đồng bộ giỏ hàng sau khi đặt hàng:',
+        error
+      );
+    }
+  };
+
+  // ============================================
+  // AI MODAL
+  // ============================================
+
+  const openAIModal = () => {
+    setIsAIModalOpen(true);
+  };
+
+  const closeAIModal = () => {
+    setIsAIModalOpen(false);
+  };
+
+  // ============================================
+  // PROVIDER
+  // ============================================
 
   return (
     <AppContext.Provider
@@ -360,18 +945,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isAIModalOpen,
         cartTotals,
         currentUser,
+
         navigateTo,
         login,
         register,
         updateUserProfile,
         logout,
+
         addToCart,
         updateCartQuantity,
         setCartQuantity,
         removeFromCart,
         clearCart,
+
         applyCoupon,
         placeOrder,
+
         showToast,
         hideToast,
         openAIModal,
@@ -383,10 +972,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
+// ============================================
+// USE APP
+// ============================================
+
 export const useApp = () => {
   const context = useContext(AppContext);
+
   if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
+    throw new Error(
+      'useApp must be used within an AppProvider'
+    );
   }
+
   return context;
 };

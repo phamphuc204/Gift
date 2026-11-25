@@ -12,7 +12,6 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
  * SPDX-License-Identifier: Apache-2.0
  */ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$application$2f$AppContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/application/AppContext.tsx [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/infrastructure/mockData.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/domain/pricing.ts [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
@@ -20,19 +19,61 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-;
 const CatalogView = ()=>{
     _s();
     const { navigateTo, addToCart } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$application$2f$AppContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useApp"])();
+    // Dữ liệu sản phẩm lấy từ Backend API
+    const [products, setProducts] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
+    const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
     const [activeCategory, setActiveCategory] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('all');
     const [searchTerm, setSearchTerm] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
     const [priceRange, setPriceRange] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('all');
     const [sortBy, setSortBy] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('bestseller');
     const [currentPage, setCurrentPage] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(1);
+    // Gọi API lấy danh sách sản phẩm
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "CatalogView.useEffect": ()=>{
+            const controller = new AbortController();
+            const fetchProducts = {
+                "CatalogView.useEffect.fetchProducts": async ()=>{
+                    try {
+                        setIsLoading(true);
+                        setError('');
+                        const response = await fetch('/api/products', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            signal: controller.signal
+                        });
+                        const result = await response.json();
+                        if (!response.ok || !result.success) {
+                            throw new Error(result.message || 'Không thể lấy danh sách sản phẩm.');
+                        }
+                        setProducts(result.data);
+                    } catch (err) {
+                        if (err instanceof Error && err.name === 'AbortError') {
+                            return;
+                        }
+                        setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi tải sản phẩm.');
+                    } finally{
+                        if (!controller.signal.aborted) {
+                            setIsLoading(false);
+                        }
+                    }
+                }
+            }["CatalogView.useEffect.fetchProducts"];
+            fetchProducts();
+            return ({
+                "CatalogView.useEffect": ()=>controller.abort()
+            })["CatalogView.useEffect"];
+        }
+    }["CatalogView.useEffect"], []);
     const categories = [
         {
             id: 'all',
-            label: `Tất Cả Mẫu Hộp (${__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["PRODUCTS"].length})`
+            label: `Tất Cả Mẫu Hộp (${products.length})`
         },
         {
             id: 'son-mai',
@@ -51,44 +92,63 @@ const CatalogView = ()=>{
             label: 'Bộ Quà Rượu Vang & Trà Shan Tuyết'
         }
     ];
+    // Tìm kiếm, lọc và sắp xếp sản phẩm
     const filteredProducts = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "CatalogView.useMemo[filteredProducts]": ()=>{
-            return __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["PRODUCTS"].filter({
+            return products.filter({
                 "CatalogView.useMemo[filteredProducts]": (item)=>{
-                    // Category filter
+                    // Lọc danh mục
                     if (activeCategory !== 'all' && item.category !== activeCategory) {
                         return false;
                     }
-                    // Search term
+                    // Tìm kiếm
                     if (searchTerm.trim()) {
-                        const term = searchTerm.toLowerCase();
+                        const term = searchTerm.trim().toLowerCase();
                         const matchesName = item.name.toLowerCase().includes(term);
                         const matchesDesc = item.description.toLowerCase().includes(term);
                         const matchesSku = item.sku.toLowerCase().includes(term);
-                        if (!matchesName && !matchesDesc && !matchesSku) return false;
+                        if (!matchesName && !matchesDesc && !matchesSku) {
+                            return false;
+                        }
                     }
-                    // Price range
-                    if (priceRange === 'under-1m' && item.price >= 1000000) return false;
-                    if (priceRange === '1m-2m' && (item.price < 1000000 || item.price > 2000000)) return false;
-                    if (priceRange === '2m-3.5m' && (item.price < 2000000 || item.price > 3500000)) return false;
-                    if (priceRange === 'above-3.5m' && item.price <= 3500000) return false;
+                    // Lọc khoảng giá
+                    if (priceRange === 'under-1m' && item.price >= 1000000) {
+                        return false;
+                    }
+                    if (priceRange === '1m-2m' && (item.price < 1000000 || item.price > 2000000)) {
+                        return false;
+                    }
+                    if (priceRange === '2m-3.5m' && (item.price < 2000000 || item.price > 3500000)) {
+                        return false;
+                    }
+                    if (priceRange === 'above-3.5m' && item.price <= 3500000) {
+                        return false;
+                    }
                     return true;
                 }
             }["CatalogView.useMemo[filteredProducts]"]).sort({
                 "CatalogView.useMemo[filteredProducts]": (a, b)=>{
-                    if (sortBy === 'price-low') return a.price - b.price;
-                    if (sortBy === 'price-high') return b.price - a.price;
-                    if (sortBy === 'rating') return b.rating - a.rating;
-                    return b.reviewsCount - a.reviewsCount; // default bestseller
+                    if (sortBy === 'price-low') {
+                        return a.price - b.price;
+                    }
+                    if (sortBy === 'price-high') {
+                        return b.price - a.price;
+                    }
+                    if (sortBy === 'rating') {
+                        return b.rating - a.rating;
+                    }
+                    return b.reviewsCount - a.reviewsCount;
                 }
             }["CatalogView.useMemo[filteredProducts]"]);
         }
     }["CatalogView.useMemo[filteredProducts]"], [
+        products,
         activeCategory,
         searchTerm,
         priceRange,
         sortBy
     ]);
+    // Phân trang
     const itemsPerPage = 6;
     const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
     const displayedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -110,7 +170,7 @@ const CatalogView = ()=>{
                         className: "absolute inset-0 radial-lantern-glow pointer-events-none"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                        lineNumber: 83,
+                        lineNumber: 180,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -118,7 +178,7 @@ const CatalogView = ()=>{
                         children: "❖"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                        lineNumber: 84,
+                        lineNumber: 182,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -126,7 +186,7 @@ const CatalogView = ()=>{
                         children: "❖"
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                        lineNumber: 87,
+                        lineNumber: 186,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -141,28 +201,28 @@ const CatalogView = ()=>{
                                         children: "Trang Chủ"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 94,
+                                        lineNumber: 193,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         children: "/"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 100,
+                                        lineNumber: 200,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "text-amber-300  font-semibold",
+                                        className: "text-amber-300 font-semibold",
                                         children: "Tuyển Tập Hộp Quà Tết Đinh Mùi 2027"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 101,
+                                        lineNumber: 202,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 93,
+                                lineNumber: 192,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -176,7 +236,7 @@ const CatalogView = ()=>{
                                                 children: "🌸"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 107,
+                                                lineNumber: 210,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -184,23 +244,22 @@ const CatalogView = ()=>{
                                                 children: "BỘ SƯU TẬP TẾT ĐINH MÙI 2027"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 108,
+                                                lineNumber: 212,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 106,
+                                        lineNumber: 209,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                                         className: "text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-4 tracking-tight font-serif-tet gold-gradient-text",
                                         children: [
                                             "Tuyển Tập",
-                                            ' ',
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 114,
+                                                lineNumber: 219,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -208,13 +267,13 @@ const CatalogView = ()=>{
                                                 children: "Hộp Quà Tết Đinh Mùi 2027"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 115,
+                                                lineNumber: 220,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 112,
+                                        lineNumber: 217,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -222,222 +281,100 @@ const CatalogView = ()=>{
                                         children: "Mỗi hộp quà là một tác phẩm nghệ thuật sơn mài & rương gỗ mộc quý giá, kết tinh phong vị cổ truyền cùng sản vật thượng hạng từ các vùng đất danh tiếng."
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 119,
+                                        lineNumber: 225,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 105,
+                                lineNumber: 208,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "grid grid-cols-2 sm:grid-cols-4 gap-3.5 max-w-5xl mx-auto pt-6 border-t border-amber-500/20",
                                 children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    {
+                                        icon: 'fa-certificate',
+                                        title: '100% Tuyển Chọn',
+                                        description: 'Nguồn gốc chuẩn vị'
+                                    },
+                                    {
+                                        icon: 'fa-box-open',
+                                        title: 'Đóng Gói Sơn Mài',
+                                        description: 'Chế tác thủ công tinh xảo'
+                                    },
+                                    {
+                                        icon: 'fa-truck-fast',
+                                        title: 'Giao Hỏa Tốc',
+                                        description: 'Đúng hẹn toàn quốc'
+                                    },
+                                    {
+                                        icon: 'fa-receipt',
+                                        title: 'Hóa Đơn VAT',
+                                        description: 'Minh bạch đầy đủ'
+                                    }
+                                ].map((item)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "flex items-center gap-3 p-3 rounded-xl bg-red-950/60 border border-amber-500/20 backdrop-blur-sm",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "w-9 h-9 rounded-full bg-red-900/60 border border-amber-400/30 flex items-center justify-center text-amber-300 text-sm shrink-0",
                                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
-                                                    className: "fa-solid fa-certificate"
+                                                    className: `fa-solid ${item.icon}`
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 129,
-                                                    columnNumber: 17
+                                                    lineNumber: 260,
+                                                    columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 128,
-                                                columnNumber: 15
+                                                lineNumber: 259,
+                                                columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "text-xs font-bold text-amber-200",
-                                                        children: "100% Tuyển Chọn"
+                                                        children: item.title
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 132,
-                                                        columnNumber: 17
+                                                        lineNumber: 264,
+                                                        columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                         className: "text-[10px] text-red-200/60",
-                                                        children: "Nguồn gốc chuẩn vị"
+                                                        children: item.description
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 133,
-                                                        columnNumber: 17
+                                                        lineNumber: 268,
+                                                        columnNumber: 19
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 131,
-                                                columnNumber: 15
+                                                lineNumber: 263,
+                                                columnNumber: 17
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
-                                    }, void 0, true, {
+                                    }, item.title, true, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 127,
-                                        columnNumber: 13
-                                    }, ("TURBOPACK compile-time value", void 0)),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "flex items-center gap-3 p-3 rounded-xl bg-red-950/60 border border-amber-500/20 backdrop-blur-sm",
-                                        children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "w-9 h-9 rounded-full bg-red-900/60 border border-amber-400/30 flex items-center justify-center text-amber-300 text-sm shrink-0",
-                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
-                                                    className: "fa-solid fa-box-open"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 138,
-                                                    columnNumber: 17
-                                                }, ("TURBOPACK compile-time value", void 0))
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 137,
-                                                columnNumber: 15
-                                            }, ("TURBOPACK compile-time value", void 0)),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                children: [
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "text-xs font-bold text-amber-200",
-                                                        children: "Đóng Gói Sơn Mài"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 141,
-                                                        columnNumber: 17
-                                                    }, ("TURBOPACK compile-time value", void 0)),
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "text-[10px] text-red-200/60",
-                                                        children: "Chế tác thủ công tinh xảo"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 142,
-                                                        columnNumber: 17
-                                                    }, ("TURBOPACK compile-time value", void 0))
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 140,
-                                                columnNumber: 15
-                                            }, ("TURBOPACK compile-time value", void 0))
-                                        ]
-                                    }, void 0, true, {
-                                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 136,
-                                        columnNumber: 13
-                                    }, ("TURBOPACK compile-time value", void 0)),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "flex items-center gap-3 p-3 rounded-xl bg-red-950/60 border border-amber-500/20 backdrop-blur-sm",
-                                        children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "w-9 h-9 rounded-full bg-red-900/60 border border-amber-400/30 flex items-center justify-center text-amber-300 text-sm shrink-0",
-                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
-                                                    className: "fa-solid fa-truck-fast"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 147,
-                                                    columnNumber: 17
-                                                }, ("TURBOPACK compile-time value", void 0))
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 146,
-                                                columnNumber: 15
-                                            }, ("TURBOPACK compile-time value", void 0)),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                children: [
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "text-xs font-bold text-amber-200",
-                                                        children: "Giao Hỏa Tốc"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 150,
-                                                        columnNumber: 17
-                                                    }, ("TURBOPACK compile-time value", void 0)),
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "text-[10px] text-red-200/60",
-                                                        children: "Đúng hẹn toàn quốc"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 151,
-                                                        columnNumber: 17
-                                                    }, ("TURBOPACK compile-time value", void 0))
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 149,
-                                                columnNumber: 15
-                                            }, ("TURBOPACK compile-time value", void 0))
-                                        ]
-                                    }, void 0, true, {
-                                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 145,
-                                        columnNumber: 13
-                                    }, ("TURBOPACK compile-time value", void 0)),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "flex items-center gap-3 p-3 rounded-xl bg-red-950/60 border border-amber-500/20 backdrop-blur-sm",
-                                        children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                className: "w-9 h-9 rounded-full bg-red-900/60 border border-amber-400/30 flex items-center justify-center text-amber-300 text-sm shrink-0",
-                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
-                                                    className: "fa-solid fa-receipt"
-                                                }, void 0, false, {
-                                                    fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 156,
-                                                    columnNumber: 17
-                                                }, ("TURBOPACK compile-time value", void 0))
-                                            }, void 0, false, {
-                                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 155,
-                                                columnNumber: 15
-                                            }, ("TURBOPACK compile-time value", void 0)),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                children: [
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "text-xs font-bold text-amber-200",
-                                                        children: "Hóa Đơn VAT"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 159,
-                                                        columnNumber: 17
-                                                    }, ("TURBOPACK compile-time value", void 0)),
-                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "text-[10px] text-red-200/60",
-                                                        children: "Minh bạch đầy đủ"
-                                                    }, void 0, false, {
-                                                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 160,
-                                                        columnNumber: 17
-                                                    }, ("TURBOPACK compile-time value", void 0))
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 158,
-                                                columnNumber: 15
-                                            }, ("TURBOPACK compile-time value", void 0))
-                                        ]
-                                    }, void 0, true, {
-                                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 154,
-                                        columnNumber: 13
-                                    }, ("TURBOPACK compile-time value", void 0))
-                                ]
-                            }, void 0, true, {
+                                        lineNumber: 255,
+                                        columnNumber: 15
+                                    }, ("TURBOPACK compile-time value", void 0)))
+                            }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 126,
+                                lineNumber: 232,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                        lineNumber: 91,
+                        lineNumber: 190,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                lineNumber: 75,
+                lineNumber: 172,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -459,13 +396,13 @@ const CatalogView = ()=>{
                                         children: cat.label
                                     }, cat.id, false, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 176,
+                                        lineNumber: 288,
                                         columnNumber: 17
                                     }, ("TURBOPACK compile-time value", void 0));
                                 })
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 172,
+                                lineNumber: 283,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -478,7 +415,7 @@ const CatalogView = ()=>{
                                                 className: "fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-400/70 text-xs"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 198,
+                                                lineNumber: 309,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -492,13 +429,13 @@ const CatalogView = ()=>{
                                                 className: "w-full pl-9 pr-4 py-2 text-xs bg-red-950/60 border border-amber-500/30 rounded-xl text-white placeholder-amber-200/50 outline-none focus:border-amber-400 transition"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 199,
+                                                lineNumber: 311,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 197,
+                                        lineNumber: 308,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -516,7 +453,7 @@ const CatalogView = ()=>{
                                                     children: "Mức giá: Tất cả mức giá"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 221,
+                                                    lineNumber: 332,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -525,7 +462,7 @@ const CatalogView = ()=>{
                                                     children: "Dưới 1.000.000₫"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 222,
+                                                    lineNumber: 336,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -534,7 +471,7 @@ const CatalogView = ()=>{
                                                     children: "1.000.000₫ - 2.000.000₫"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 223,
+                                                    lineNumber: 340,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -543,7 +480,7 @@ const CatalogView = ()=>{
                                                     children: "2.000.000₫ - 3.500.000₫"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 224,
+                                                    lineNumber: 344,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -552,24 +489,27 @@ const CatalogView = ()=>{
                                                     children: "Trên 3.500.000₫ (VIP)"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 225,
+                                                    lineNumber: 348,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                            lineNumber: 213,
+                                            lineNumber: 324,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 212,
+                                        lineNumber: 323,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
                                             value: sortBy,
-                                            onChange: (e)=>setSortBy(e.target.value),
+                                            onChange: (e)=>{
+                                                setSortBy(e.target.value);
+                                                setCurrentPage(1);
+                                            },
                                             className: "w-full text-xs text-white font-medium bg-red-950/60 border border-amber-500/30 rounded-xl px-3.5 py-2 outline-none focus:border-amber-400 transition cursor-pointer",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -578,7 +518,7 @@ const CatalogView = ()=>{
                                                     children: "Sắp xếp: Bán chạy nhất Tết 2027"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 236,
+                                                    lineNumber: 363,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -587,7 +527,7 @@ const CatalogView = ()=>{
                                                     children: "Giá từ thấp đến cao"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 237,
+                                                    lineNumber: 367,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -596,7 +536,7 @@ const CatalogView = ()=>{
                                                     children: "Giá từ cao đến thấp"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 238,
+                                                    lineNumber: 371,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -605,40 +545,95 @@ const CatalogView = ()=>{
                                                     children: "Đánh giá cao nhất"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                    lineNumber: 239,
+                                                    lineNumber: 375,
                                                     columnNumber: 17
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                            lineNumber: 231,
+                                            lineNumber: 355,
                                             columnNumber: 15
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 230,
+                                        lineNumber: 354,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 195,
+                                lineNumber: 307,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                        lineNumber: 170,
+                        lineNumber: 281,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
-                    displayedProducts.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    isLoading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "text-center py-16",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
+                                className: "fa-solid fa-spinner fa-spin text-3xl text-amber-400 mb-3"
+                            }, void 0, false, {
+                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
+                                lineNumber: 386,
+                                columnNumber: 13
+                            }, ("TURBOPACK compile-time value", void 0)),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                className: "text-amber-200 text-sm",
+                                children: "Đang tải danh sách hộp quà..."
+                            }, void 0, false, {
+                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
+                                lineNumber: 387,
+                                columnNumber: 13
+                            }, ("TURBOPACK compile-time value", void 0))
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
+                        lineNumber: 385,
+                        columnNumber: 11
+                    }, ("TURBOPACK compile-time value", void 0)) : error ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "text-center py-16 bg-red-950/40 rounded-2xl border border-red-500/30",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
+                                className: "fa-solid fa-triangle-exclamation text-3xl text-red-400 mb-3"
+                            }, void 0, false, {
+                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
+                                lineNumber: 393,
+                                columnNumber: 13
+                            }, ("TURBOPACK compile-time value", void 0)),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                className: "text-red-300 text-sm",
+                                children: error
+                            }, void 0, false, {
+                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
+                                lineNumber: 395,
+                                columnNumber: 13
+                            }, ("TURBOPACK compile-time value", void 0)),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                onClick: ()=>window.location.reload(),
+                                className: "mt-4 px-4 py-2 rounded-xl bg-amber-400 text-red-950 font-bold text-xs cursor-pointer",
+                                children: "Thử tải lại"
+                            }, void 0, false, {
+                                fileName: "[project]/src/presentation/views/CatalogView.tsx",
+                                lineNumber: 397,
+                                columnNumber: 13
+                            }, ("TURBOPACK compile-time value", void 0))
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/presentation/views/CatalogView.tsx",
+                        lineNumber: 392,
+                        columnNumber: 11
+                    }, ("TURBOPACK compile-time value", void 0)) : displayedProducts.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "text-center py-16 bg-red-950/40 rounded-2xl border border-amber-500/20",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                 className: "fa-solid fa-box-open text-4xl text-amber-400/50 mb-3"
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 248,
+                                lineNumber: 406,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -646,7 +641,7 @@ const CatalogView = ()=>{
                                 children: "Không tìm thấy hộp quà phù hợp"
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 249,
+                                lineNumber: 408,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -654,7 +649,7 @@ const CatalogView = ()=>{
                                 children: "Vui lòng điều chỉnh lại bộ lọc hoặc từ khóa tìm kiếm."
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 250,
+                                lineNumber: 412,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -662,18 +657,19 @@ const CatalogView = ()=>{
                                     setActiveCategory('all');
                                     setSearchTerm('');
                                     setPriceRange('all');
+                                    setCurrentPage(1);
                                 },
                                 className: "mt-4 px-4 py-2 rounded-xl bg-amber-400 text-red-950 font-bold text-xs uppercase cursor-pointer",
                                 children: "Xem tất cả hộp quà"
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 251,
+                                lineNumber: 416,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                        lineNumber: 247,
+                        lineNumber: 405,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12",
@@ -690,7 +686,7 @@ const CatalogView = ()=>{
                                                 className: "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 274,
+                                                lineNumber: 440,
                                                 columnNumber: 19
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             prod.badge && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -698,13 +694,13 @@ const CatalogView = ()=>{
                                                 children: prod.badge
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 280,
+                                                lineNumber: 447,
                                                 columnNumber: 21
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 270,
+                                        lineNumber: 436,
                                         columnNumber: 17
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -718,10 +714,10 @@ const CatalogView = ()=>{
                                                             [
                                                                 ...Array(5)
                                                             ].map((_, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
-                                                                    className: "fa-solid fa-star text-[11px]"
+                                                                    className: `fa-solid fa-star text-[11px] ${i < Math.round(prod.rating) ? '' : 'opacity-30'}`
                                                                 }, i, false, {
                                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                    lineNumber: 292,
+                                                                    lineNumber: 459,
                                                                     columnNumber: 25
                                                                 }, ("TURBOPACK compile-time value", void 0))),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -733,13 +729,13 @@ const CatalogView = ()=>{
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                lineNumber: 294,
+                                                                lineNumber: 469,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 290,
+                                                        lineNumber: 457,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -748,7 +744,7 @@ const CatalogView = ()=>{
                                                         children: prod.name
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 299,
+                                                        lineNumber: 474,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -756,13 +752,13 @@ const CatalogView = ()=>{
                                                         children: prod.description
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 305,
+                                                        lineNumber: 481,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 288,
+                                                lineNumber: 455,
                                                 columnNumber: 19
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -775,7 +771,7 @@ const CatalogView = ()=>{
                                                                 children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatVND"])(prod.price)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                lineNumber: 312,
+                                                                lineNumber: 488,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -785,20 +781,20 @@ const CatalogView = ()=>{
                                                                         className: "fa-solid fa-shield-halved text-[10px]"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                        lineNumber: 316,
+                                                                        lineNumber: 493,
                                                                         columnNumber: 25
                                                                     }, ("TURBOPACK compile-time value", void 0)),
-                                                                    "Có sẵn giao ngay"
+                                                                    prod.inStock && prod.stockCount > 0 ? 'Có sẵn giao ngay' : 'Tạm hết hàng'
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                lineNumber: 315,
+                                                                lineNumber: 492,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 311,
+                                                        lineNumber: 487,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -806,73 +802,75 @@ const CatalogView = ()=>{
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                 onClick: ()=>addToCart(prod, 1),
-                                                                className: "py-2 px-3 rounded-xl border border-amber-400/40 text-amber-200 hover:text-white hover:bg-amber-500/10 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer",
+                                                                disabled: !prod.inStock || prod.stockCount <= 0,
+                                                                className: "py-2 px-3 rounded-xl border border-amber-400/40 text-amber-200 hover:text-white hover:bg-amber-500/10 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed",
                                                                 children: [
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                         className: "fa-solid fa-gift text-[11px]"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                        lineNumber: 327,
+                                                                        lineNumber: 507,
                                                                         columnNumber: 25
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                         children: "Thêm vào giỏ"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                        lineNumber: 328,
+                                                                        lineNumber: 508,
                                                                         columnNumber: 25
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                lineNumber: 323,
+                                                                lineNumber: 502,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0)),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                                 onClick: ()=>handleBuyNow(prod),
-                                                                className: "py-2 px-3 rounded-xl bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-red-950 text-xs font-bold tracking-wide hover:from-amber-200 hover:to-amber-400 shadow-md shadow-amber-500/25 transition-all flex items-center justify-center gap-1 cursor-pointer",
+                                                                disabled: !prod.inStock || prod.stockCount <= 0,
+                                                                className: "py-2 px-3 rounded-xl bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-red-950 text-xs font-bold tracking-wide hover:from-amber-200 hover:to-amber-400 shadow-md shadow-amber-500/25 transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed",
                                                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                     children: "Đặt mua ngay"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                    lineNumber: 334,
+                                                                    lineNumber: 516,
                                                                     columnNumber: 25
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                                lineNumber: 330,
+                                                                lineNumber: 511,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                        lineNumber: 322,
+                                                        lineNumber: 501,
                                                         columnNumber: 21
                                                     }, ("TURBOPACK compile-time value", void 0))
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 310,
+                                                lineNumber: 486,
                                                 columnNumber: 19
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 287,
+                                        lineNumber: 454,
                                         columnNumber: 17
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, prod.id, true, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 265,
+                                lineNumber: 431,
                                 columnNumber: 15
                             }, ("TURBOPACK compile-time value", void 0)))
                     }, void 0, false, {
                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                        lineNumber: 263,
+                        lineNumber: 429,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    !isLoading && !error && filteredProducts.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "flex items-center justify-center gap-2 mb-16",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -884,13 +882,13 @@ const CatalogView = ()=>{
                                     className: "fa-solid fa-chevron-left"
                                 }, void 0, false, {
                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                    lineNumber: 352,
-                                    columnNumber: 13
+                                    lineNumber: 535,
+                                    columnNumber: 15
                                 }, ("TURBOPACK compile-time value", void 0))
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 346,
-                                columnNumber: 11
+                                lineNumber: 529,
+                                columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             [
                                 ...Array(totalPages)
@@ -903,8 +901,8 @@ const CatalogView = ()=>{
                                     children: pageNum
                                 }, pageNum, false, {
                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                    lineNumber: 358,
-                                    columnNumber: 15
+                                    lineNumber: 543,
+                                    columnNumber: 17
                                 }, ("TURBOPACK compile-time value", void 0));
                             }),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -916,19 +914,19 @@ const CatalogView = ()=>{
                                     className: "fa-solid fa-chevron-right"
                                 }, void 0, false, {
                                     fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                    lineNumber: 377,
-                                    columnNumber: 13
+                                    lineNumber: 565,
+                                    columnNumber: 15
                                 }, ("TURBOPACK compile-time value", void 0))
                             }, void 0, false, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 371,
-                                columnNumber: 11
+                                lineNumber: 557,
+                                columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                        lineNumber: 345,
-                        columnNumber: 9
+                        lineNumber: 528,
+                        columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "bg-gradient-to-r from-[#5c0b11] via-[#750e17] to-[#3a060a] rounded-3xl p-6 lg:p-10 border border-amber-400/40 gold-card-shadow flex flex-col lg:flex-row items-center justify-between gap-6",
@@ -943,14 +941,14 @@ const CatalogView = ()=>{
                                                 className: "fa-solid fa-crown text-[10px]"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 385,
+                                                lineNumber: 574,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
-                                            " GIẢI PHÁP QUÀ TẾT DOANH NGHIỆP 2027"
+                                            "GIẢI PHÁP QUÀ TẾT DOANH NGHIỆP 2027"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 384,
+                                        lineNumber: 573,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -958,7 +956,7 @@ const CatalogView = ()=>{
                                         children: "Đặt Hàng Quà Tết Doanh Nghiệp Số Lượng Lớn?"
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 387,
+                                        lineNumber: 578,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -966,13 +964,13 @@ const CatalogView = ()=>{
                                         children: "Chiết khấu đặc quyền đến 25%, đóng gói sơn mài thượng hạng, in thiệp chúc riêng từng đối tác và giao hàng tận nơi 63 tỉnh thành."
                                     }, void 0, false, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 390,
+                                        lineNumber: 582,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 383,
+                                lineNumber: 572,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -986,20 +984,20 @@ const CatalogView = ()=>{
                                                 className: "fa-solid fa-phone-volume text-xs"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 400,
+                                                lineNumber: 593,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: "YÊU CẦU BÁO GIÁ NHANH"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 401,
+                                                lineNumber: 594,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 396,
+                                        lineNumber: 589,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1010,48 +1008,48 @@ const CatalogView = ()=>{
                                                 className: "fa-solid fa-file-arrow-down text-xs text-amber-400"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 407,
+                                                lineNumber: 601,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0)),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: "TẢI CATALOGUE PDF"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                                lineNumber: 408,
+                                                lineNumber: 602,
                                                 columnNumber: 15
                                             }, ("TURBOPACK compile-time value", void 0))
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                        lineNumber: 403,
+                                        lineNumber: 597,
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0))
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                                lineNumber: 395,
+                                lineNumber: 588,
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                        lineNumber: 382,
+                        lineNumber: 571,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/presentation/views/CatalogView.tsx",
-                lineNumber: 168,
+                lineNumber: 279,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/presentation/views/CatalogView.tsx",
-        lineNumber: 73,
+        lineNumber: 170,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
-_s(CatalogView, "ODHFVilUTMwjspRgiUTn0SQJIlY=", false, function() {
+_s(CatalogView, "zi5pTph+vLmzp4HTQDNCKKOQ1Ps=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$application$2f$AppContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useApp"]
     ];

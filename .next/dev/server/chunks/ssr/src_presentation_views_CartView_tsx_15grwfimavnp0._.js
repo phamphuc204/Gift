@@ -20,7 +20,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$
 ;
 const CartView = ()=>{
     const { cartItems, cartTotals, updateCartQuantity, removeFromCart, clearCart, applyCoupon, couponCode, couponApplied, navigateTo } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$application$2f$AppContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useApp"])();
-    const [inputCoupon, setInputCoupon] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(couponCode);
+    const [inputCoupon, setInputCoupon] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
     const handleApplyCoupon = ()=>{
         applyCoupon(inputCoupon);
     };
@@ -839,7 +839,7 @@ const CartView = ()=>{
                                                     lineNumber: 301,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
-                                                cartTotals.isB2BDiscountActive && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                     className: "mt-4 p-3.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-transparent flex items-start gap-3 border border-amber-500/20",
                                                     children: [
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -847,23 +847,53 @@ const CartView = ()=>{
                                                             children: "🏮"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 327,
-                                                            columnNumber: 23
+                                                            lineNumber: 326,
+                                                            columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                             className: "text-xs text-amber-200 leading-relaxed",
                                                             children: [
-                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                                    className: "font-bold text-amber-300",
-                                                                    children: "Đã kích hoạt ưu đãi doanh nghiệp:"
-                                                                }, void 0, false, {
+                                                                couponApplied ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                            className: "font-bold text-emerald-400",
+                                                                            children: [
+                                                                                "Đã áp dụng mã ưu đãi ",
+                                                                                couponCode,
+                                                                                ":"
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "[project]/src/presentation/views/CartView.tsx",
+                                                                            lineNumber: 333,
+                                                                            columnNumber: 27
+                                                                        }, ("TURBOPACK compile-time value", void 0)),
+                                                                        ' ',
+                                                                        "Chiết khấu hiện tại là",
+                                                                        ' '
+                                                                    ]
+                                                                }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 329,
+                                                                    lineNumber: 332,
+                                                                    columnNumber: 25
+                                                                }, ("TURBOPACK compile-time value", void 0)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                            className: "font-bold text-amber-300",
+                                                                            children: "Chưa áp dụng mã ưu đãi:"
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/src/presentation/views/CartView.tsx",
+                                                                            lineNumber: 340,
+                                                                            columnNumber: 27
+                                                                        }, ("TURBOPACK compile-time value", void 0)),
+                                                                        ' ',
+                                                                        "Quý khách vẫn được hưởng chiết khấu doanh nghiệp theo số lượng đặt hàng (nếu đủ điều kiện). Mức chiết khấu hiện tại là",
+                                                                        ' '
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/src/presentation/views/CartView.tsx",
+                                                                    lineNumber: 339,
                                                                     columnNumber: 25
                                                                 }, ("TURBOPACK compile-time value", void 0)),
-                                                                ' ',
-                                                                "Chiết khấu bậc thang",
-                                                                ' ',
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                     className: "font-extrabold text-amber-100 bg-amber-500/20 px-1.5 py-0.5 rounded",
                                                                     children: [
@@ -872,24 +902,20 @@ const CartView = ()=>{
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 331,
-                                                                    columnNumber: 25
-                                                                }, ("TURBOPACK compile-time value", void 0)),
-                                                                ' ',
-                                                                "cho đơn hàng từ ",
-                                                                cartTotals.totalBoxes >= 50 ? '50' : '20',
-                                                                " hộp trở lên (Đã áp dụng tự động cho giỏ hàng)."
+                                                                    lineNumber: 347,
+                                                                    columnNumber: 23
+                                                                }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 328,
-                                                            columnNumber: 23
+                                                            lineNumber: 330,
+                                                            columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                    lineNumber: 326,
-                                                    columnNumber: 21
+                                                    lineNumber: 325,
+                                                    columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
@@ -909,12 +935,12 @@ const CartView = ()=>{
                                                                 className: "fa-solid fa-certificate"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                lineNumber: 344,
+                                                                lineNumber: 358,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 343,
+                                                            lineNumber: 357,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -924,7 +950,7 @@ const CartView = ()=>{
                                                                     children: "100% Chính Hãng"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 347,
+                                                                    lineNumber: 361,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -932,19 +958,19 @@ const CartView = ()=>{
                                                                     children: "Nông sản OCOP, thảo mộc tuyển chọn và rượu nhập khẩu nguyên chai."
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 348,
+                                                                    lineNumber: 362,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 346,
+                                                            lineNumber: 360,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                    lineNumber: 342,
+                                                    lineNumber: 356,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -956,12 +982,12 @@ const CartView = ()=>{
                                                                 className: "fa-solid fa-box-open"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                lineNumber: 355,
+                                                                lineNumber: 369,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 354,
+                                                            lineNumber: 368,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -971,7 +997,7 @@ const CartView = ()=>{
                                                                     children: "Đóng Gói Cung Đình"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 358,
+                                                                    lineNumber: 372,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -979,19 +1005,19 @@ const CartView = ()=>{
                                                                     children: "Sơn mài đa lớp và khay lụa tơ tằm nâng niu trọn vẹn từng phẩm vật Tết."
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 359,
+                                                                    lineNumber: 373,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 357,
+                                                            lineNumber: 371,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                    lineNumber: 353,
+                                                    lineNumber: 367,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1003,12 +1029,12 @@ const CartView = ()=>{
                                                                 className: "fa-solid fa-truck-fast"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                lineNumber: 366,
+                                                                lineNumber: 380,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 365,
+                                                            lineNumber: 379,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1018,7 +1044,7 @@ const CartView = ()=>{
                                                                     children: "Giao Toàn Quốc"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 369,
+                                                                    lineNumber: 383,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1026,25 +1052,25 @@ const CartView = ()=>{
                                                                     children: "Phân phối nhiều điểm cho nhân sự và đối tác theo danh sách yêu cầu."
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 370,
+                                                                    lineNumber: 384,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 368,
+                                                            lineNumber: 382,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                    lineNumber: 364,
+                                                    lineNumber: 378,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                            lineNumber: 341,
+                                            lineNumber: 355,
                                             columnNumber: 17
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
@@ -1063,7 +1089,7 @@ const CartView = ()=>{
                                                     className: "absolute -top-12 -right-12 w-36 h-36 rounded-full bg-amber-400/15 blur-2xl pointer-events-none"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                    lineNumber: 381,
+                                                    lineNumber: 395,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1079,20 +1105,20 @@ const CartView = ()=>{
                                                                             className: "fa-solid fa-receipt text-amber-400 text-sm"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 385,
+                                                                            lineNumber: 399,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Tóm Tắt Đơn Hàng"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 386,
+                                                                            lineNumber: 400,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 384,
+                                                                    lineNumber: 398,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1103,13 +1129,13 @@ const CartView = ()=>{
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 388,
+                                                                    lineNumber: 402,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 383,
+                                                            lineNumber: 397,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1126,7 +1152,7 @@ const CartView = ()=>{
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 396,
+                                                                            lineNumber: 410,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1134,13 +1160,13 @@ const CartView = ()=>{
                                                                             children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(cartTotals.subtotal)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 397,
+                                                                            lineNumber: 411,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 395,
+                                                                    lineNumber: 409,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1153,7 +1179,7 @@ const CartView = ()=>{
                                                                                     className: "fa-solid fa-tag text-[11px]"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                                    lineNumber: 403,
+                                                                                    lineNumber: 417,
                                                                                     columnNumber: 27
                                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                                 "Chiết khấu doanh nghiệp (",
@@ -1162,7 +1188,7 @@ const CartView = ()=>{
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 402,
+                                                                            lineNumber: 416,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1173,13 +1199,13 @@ const CartView = ()=>{
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 406,
+                                                                            lineNumber: 420,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 401,
+                                                                    lineNumber: 415,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1189,7 +1215,7 @@ const CartView = ()=>{
                                                                             children: "Phí vận chuyển:"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 411,
+                                                                            lineNumber: 425,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1199,20 +1225,20 @@ const CartView = ()=>{
                                                                                     className: "fa-solid fa-bolt text-xs text-amber-400"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                                    lineNumber: 413,
+                                                                                    lineNumber: 427,
                                                                                     columnNumber: 27
                                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                                 " Miễn phí (0 ₫)"
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 412,
+                                                                            lineNumber: 426,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 410,
+                                                                    lineNumber: 424,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1222,7 +1248,7 @@ const CartView = ()=>{
                                                                             children: "Thiệp chúc mừng Đinh Mùi 2027:"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 417,
+                                                                            lineNumber: 431,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1230,19 +1256,19 @@ const CartView = ()=>{
                                                                             children: "Tặng kèm (0 ₫)"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 418,
+                                                                            lineNumber: 432,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 416,
+                                                                    lineNumber: 430,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 394,
+                                                            lineNumber: 408,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1255,7 +1281,7 @@ const CartView = ()=>{
                                                                         children: "Tổng Tiền Thanh Toán (Đã bao gồm VAT)"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                        lineNumber: 425,
+                                                                        lineNumber: 439,
                                                                         columnNumber: 25
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1263,7 +1289,7 @@ const CartView = ()=>{
                                                                         children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["formatVND"])(cartTotals.grandTotal)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                        lineNumber: 428,
+                                                                        lineNumber: 442,
                                                                         columnNumber: 25
                                                                     }, ("TURBOPACK compile-time value", void 0)),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1271,18 +1297,18 @@ const CartView = ()=>{
                                                                         children: "(Đã bao gồm thuế VAT 8% • Hỗ trợ xuất hóa đơn điện tử trong ngày)"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                        lineNumber: 431,
+                                                                        lineNumber: 445,
                                                                         columnNumber: 25
                                                                     }, ("TURBOPACK compile-time value", void 0))
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                lineNumber: 424,
+                                                                lineNumber: 438,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 423,
+                                                            lineNumber: 437,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1296,20 +1322,20 @@ const CartView = ()=>{
                                                                             className: "fa-solid fa-lock text-sm"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 443,
+                                                                            lineNumber: 457,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Tiến Hành Thanh Toán"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 444,
+                                                                            lineNumber: 458,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 439,
+                                                                    lineNumber: 453,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1320,26 +1346,26 @@ const CartView = ()=>{
                                                                             className: "fa-solid fa-file-contract text-amber-400"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 451,
+                                                                            lineNumber: 465,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Yêu Cầu Báo Giá & Hợp Đồng B2B"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 452,
+                                                                            lineNumber: 466,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 447,
+                                                                    lineNumber: 461,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 438,
+                                                            lineNumber: 452,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1353,20 +1379,20 @@ const CartView = ()=>{
                                                                             children: "✔"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 459,
+                                                                            lineNumber: 473,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Bảo chứng hoàn hảo 100% từng hộp quà trao tay"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 460,
+                                                                            lineNumber: 474,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 458,
+                                                                    lineNumber: 472,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1377,20 +1403,20 @@ const CartView = ()=>{
                                                                             children: "✔"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 463,
+                                                                            lineNumber: 477,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Đổi trả minh bạch 1:1 tận nơi nếu có phát sinh"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 464,
+                                                                            lineNumber: 478,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 462,
+                                                                    lineNumber: 476,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1401,26 +1427,26 @@ const CartView = ()=>{
                                                                             children: "✔"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 467,
+                                                                            lineNumber: 481,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "Hỗ trợ thiết kế thiệp Tết & túi xách cao cấp miễn phí"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 468,
+                                                                            lineNumber: 482,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 466,
+                                                                    lineNumber: 480,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 457,
+                                                            lineNumber: 471,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1431,7 +1457,7 @@ const CartView = ()=>{
                                                                     children: "Thanh toán bảo mật chuẩn SSL 256-bit"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 474,
+                                                                    lineNumber: 488,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1441,52 +1467,52 @@ const CartView = ()=>{
                                                                             className: "fa-brands fa-cc-visa hover:text-amber-300 transition-colors"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 478,
+                                                                            lineNumber: 492,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                             className: "fa-brands fa-cc-mastercard hover:text-amber-300 transition-colors"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 479,
+                                                                            lineNumber: 493,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                             className: "fa-solid fa-qrcode hover:text-amber-300 transition-colors"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 480,
+                                                                            lineNumber: 494,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("i", {
                                                                             className: "fa-solid fa-building-columns hover:text-amber-300 transition-colors"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                            lineNumber: 481,
+                                                                            lineNumber: 495,
                                                                             columnNumber: 25
                                                                         }, ("TURBOPACK compile-time value", void 0))
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 477,
+                                                                    lineNumber: 491,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 473,
+                                                            lineNumber: 487,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                    lineNumber: 382,
+                                                    lineNumber: 396,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                            lineNumber: 380,
+                                            lineNumber: 394,
                                             columnNumber: 17
                                         }, ("TURBOPACK compile-time value", void 0)),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1501,12 +1527,12 @@ const CartView = ()=>{
                                                                 className: "fa-solid fa-phone-volume animate-pulse"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                lineNumber: 491,
+                                                                lineNumber: 505,
                                                                 columnNumber: 23
                                                             }, ("TURBOPACK compile-time value", void 0))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 490,
+                                                            lineNumber: 504,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1516,7 +1542,7 @@ const CartView = ()=>{
                                                                     children: "Cần tư vấn cho đơn trên 50 hộp?"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 494,
+                                                                    lineNumber: 508,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1524,19 +1550,19 @@ const CartView = ()=>{
                                                                     children: "Hotline: 1900 8866"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                                    lineNumber: 495,
+                                                                    lineNumber: 509,
                                                                     columnNumber: 23
                                                                 }, ("TURBOPACK compile-time value", void 0))
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                            lineNumber: 493,
+                                                            lineNumber: 507,
                                                             columnNumber: 21
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                    lineNumber: 489,
+                                                    lineNumber: 503,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -1545,19 +1571,19 @@ const CartView = ()=>{
                                                     children: "Gọi Ngay"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                                    lineNumber: 498,
+                                                    lineNumber: 512,
                                                     columnNumber: 19
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/presentation/views/CartView.tsx",
-                                            lineNumber: 488,
+                                            lineNumber: 502,
                                             columnNumber: 17
                                         }, ("TURBOPACK compile-time value", void 0))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/presentation/views/CartView.tsx",
-                                    lineNumber: 379,
+                                    lineNumber: 393,
                                     columnNumber: 15
                                 }, ("TURBOPACK compile-time value", void 0))
                             ]

@@ -159,19 +159,164 @@ const INITIAL_USER = {
     accumulatedBoxes: 125
 };
 const AppContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createContext"])(undefined);
+const SESSION_STORAGE_KEY = 'elegift_session_id';
 const AppProvider = ({ children })=>{
     const [currentScreen, setCurrentScreen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('home');
     const [selectedProductId, setSelectedProductId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('van-su-khoi-sac');
-    const [couponCode, setCouponCode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('TET2027');
-    const [couponApplied, setCouponApplied] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
+    const [couponCode, setCouponCode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+    const [couponApplied, setCouponApplied] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [currentUser, setCurrentUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(INITIAL_USER);
     const [orders, setOrders] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["INITIAL_ORDERS"]);
     const [isAIModalOpen, setIsAIModalOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [cartItems, setCartItems] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [sessionId, setSessionId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+    const [isCartLoading, setIsCartLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
     const [toast, setToast] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({
         show: false,
         message: '',
         type: 'success'
     });
+    // ============================================
+    // TOAST
+    // ============================================
+    const showToast = (message, type = 'success')=>{
+        setToast({
+            show: true,
+            message,
+            type
+        });
+    };
+    const hideToast = ()=>{
+        setToast((prev)=>({
+                ...prev,
+                show: false
+            }));
+    };
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if (!toast.show) return;
+        const timer = setTimeout(()=>{
+            hideToast();
+        }, 4000);
+        return ()=>clearTimeout(timer);
+    }, [
+        toast.show
+    ]);
+    // ============================================
+    // SESSION ID
+    // ============================================
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        let currentSessionId = localStorage.getItem(SESSION_STORAGE_KEY);
+        if (!currentSessionId) {
+            currentSessionId = `session-${crypto.randomUUID()}`;
+            localStorage.setItem(SESSION_STORAGE_KEY, currentSessionId);
+        }
+        setSessionId(currentSessionId);
+    }, []);
+    // ============================================
+    // CART API - GET CART
+    // ============================================
+    const syncCartFromApi = async (currentSessionId)=>{
+        try {
+            const response = await fetch(`/api/cart?sessionId=${encodeURIComponent(currentSessionId)}`, {
+                method: 'GET',
+                cache: 'no-store'
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Không thể tải giỏ hàng.');
+            }
+            const apiItems = result.data?.items || [];
+            const mappedItems = apiItems.filter((item)=>item.product).map((item)=>({
+                    id: item.id,
+                    productId: item.productId,
+                    product: item.product,
+                    quantity: item.quantity,
+                    selectedVariant: item.selectedVariant || 'standard',
+                    selectedVariantLabel: item.selectedVariantLabel || 'Phiên bản tiêu chuẩn',
+                    unitPrice: item.unitPrice
+                }));
+            setCartItems(mappedItems);
+            return mappedItems;
+        } catch (error) {
+            console.error('Lỗi đồng bộ giỏ hàng:', error);
+            throw error;
+        }
+    };
+    // Tự động tải giỏ hàng khi đã có sessionId
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if (!sessionId) return;
+        let cancelled = false;
+        const loadCart = async ()=>{
+            try {
+                const response = await fetch(`/api/cart?sessionId=${encodeURIComponent(sessionId)}`, {
+                    method: 'GET',
+                    cache: 'no-store'
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'Không thể tải giỏ hàng.');
+                }
+                if (cancelled) return;
+                const apiItems = result.data?.items || [];
+                const mappedItems = apiItems.filter((item)=>item.product).map((item)=>({
+                        id: item.id,
+                        productId: item.productId,
+                        product: item.product,
+                        quantity: item.quantity,
+                        selectedVariant: item.selectedVariant || 'standard',
+                        selectedVariantLabel: item.selectedVariantLabel || 'Phiên bản tiêu chuẩn',
+                        unitPrice: item.unitPrice
+                    }));
+                setCartItems(mappedItems);
+            } catch (error) {
+                console.error('Không thể tải giỏ hàng:', error);
+                if (!cancelled) {
+                    showToast('Không thể tải giỏ hàng. Vui lòng thử tải lại trang.', 'error');
+                }
+            } finally{
+                if (!cancelled) {
+                    setIsCartLoading(false);
+                }
+            }
+        };
+        loadCart();
+        return ()=>{
+            cancelled = true;
+        };
+    }, [
+        sessionId
+    ]);
+    // Đảm bảo có sessionId trước khi gọi Cart API
+    const ensureSessionId = ()=>{
+        if (sessionId) return sessionId;
+        let currentSessionId = localStorage.getItem(SESSION_STORAGE_KEY);
+        if (!currentSessionId) {
+            currentSessionId = `session-${crypto.randomUUID()}`;
+            localStorage.setItem(SESSION_STORAGE_KEY, currentSessionId);
+        }
+        setSessionId(currentSessionId);
+        return currentSessionId;
+    };
+    // ============================================
+    // CART TOTALS
+    // ============================================
+    const cartTotals = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["calculateCartTotals"])(cartItems, couponApplied ? couponCode : undefined);
+    // ============================================
+    // NAVIGATION
+    // ============================================
+    const navigateTo = (screen, productId)=>{
+        if (productId) {
+            setSelectedProductId(productId);
+        }
+        setCurrentScreen(screen);
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    };
+    // ============================================
+    // LOGIN
+    // ============================================
     const login = (email, _password, role = 'b2b', _rememberMe)=>{
         const isVingroup = email.toLowerCase().includes('vingroup') || email === '' || email.toLowerCase().includes('admin');
         const user = {
@@ -179,7 +324,7 @@ const AppProvider = ({ children })=>{
             name: isVingroup ? 'Nguyễn Văn A' : email.split('@')[0] || 'Khách Hàng VIP',
             email: email || 'van.a@vingroup.net',
             phone: '0912 345 678',
-            role: role,
+            role,
             companyName: role === 'b2b' ? isVingroup ? 'Tập Đoàn Vingroup' : 'Công Ty CP Đối Tác Doanh Nghiệp' : undefined,
             taxCode: role === 'b2b' ? '0101245486' : undefined,
             position: role === 'b2b' ? 'Quản lý thu mua & Đối ngoại' : 'Khách hàng thân thiết',
@@ -192,6 +337,9 @@ const AppProvider = ({ children })=>{
         showToast(`Đăng nhập thành công! Chào mừng ${user.name}.`, 'success');
         return true;
     };
+    // ============================================
+    // REGISTER
+    // ============================================
     const register = (profileData)=>{
         const newUser = {
             id: `usr-${Date.now()}`,
@@ -211,6 +359,9 @@ const AppProvider = ({ children })=>{
         showToast(`Tạo tài khoản thành công! Chào mừng ${newUser.name} đến với EleGift.`, 'success');
         return true;
     };
+    // ============================================
+    // UPDATE USER PROFILE
+    // ============================================
     const updateUserProfile = (profileData)=>{
         setCurrentUser((prev)=>{
             if (!prev) return null;
@@ -221,129 +372,125 @@ const AppProvider = ({ children })=>{
         });
         showToast('Đã lưu và đồng bộ thông tin tài khoản & doanh nghiệp thành công!', 'success');
     };
+    // ============================================
+    // LOGOUT
+    // ============================================
     const logout = ()=>{
         setCurrentUser(null);
         showToast('Đã đăng xuất tài khoản an toàn.', 'info');
     };
-    // Seed default cart items:
-    const [cartItems, setCartItems] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(()=>{
-        const prod1 = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PRODUCTS"].find((p)=>p.id === 'van-su-khoi-sac') || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PRODUCTS"][0];
-        const prod2 = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PRODUCTS"].find((p)=>p.id === 'long-phung-hoa-minh') || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$infrastructure$2f$mockData$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PRODUCTS"][1];
-        return [
-            {
-                id: 'cart-item-1',
-                productId: prod1.id,
-                product: prod1,
-                quantity: 20,
-                selectedVariant: 'do-phu-quy',
-                selectedVariantLabel: 'Đỏ Phú Quý • Hộp sơn mài cao cấp',
-                unitPrice: 1250000
-            },
-            {
-                id: 'cart-item-2',
-                productId: prod2.id,
-                product: prod2,
-                quantity: 5,
-                selectedVariant: 'mun-hoang-gia',
-                selectedVariantLabel: 'Gỗ Mun Hoàng Gia • Single Malt Whisky',
-                unitPrice: 2450000
-            }
-        ];
-    });
-    const cartTotals = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$domain$2f$pricing$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["calculateCartTotals"])(cartItems, couponApplied ? couponCode : undefined);
-    const navigateTo = (screen, productId)=>{
-        if (productId) {
-            setSelectedProductId(productId);
-        }
-        setCurrentScreen(screen);
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    };
-    const showToast = (message, type = 'success')=>{
-        setToast({
-            show: true,
-            message,
-            type
-        });
-    };
-    const hideToast = ()=>{
-        setToast((prev)=>({
-                ...prev,
-                show: false
-            }));
-    };
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        if (toast.show) {
-            const timer = setTimeout(()=>{
-                hideToast();
-            }, 4000);
-            return ()=>clearTimeout(timer);
-        }
-    }, [
-        toast.show
-    ]);
-    const addToCart = (product, quantity = 1, variant = 'standard', variantLabel)=>{
-        setCartItems((prev)=>{
-            const existingIndex = prev.findIndex((item)=>item.productId === product.id && item.selectedVariant === variant);
-            if (existingIndex > -1) {
-                const next = [
-                    ...prev
-                ];
-                next[existingIndex] = {
-                    ...next[existingIndex],
-                    quantity: next[existingIndex].quantity + quantity
-                };
-                return next;
-            } else {
-                const newItem = {
-                    id: `cart-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    // ============================================
+    // CART API - ADD TO CART
+    // ============================================
+    const addToCart = async (product, quantity = 1, variant = 'do-phu-quy', variantLabel)=>{
+        try {
+            const currentSessionId = ensureSessionId();
+            const response = await fetch('/api/cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sessionId: currentSessionId,
                     productId: product.id,
-                    product,
-                    quantity,
-                    selectedVariant: variant,
-                    selectedVariantLabel: variantLabel || (variant === 'standard' ? 'Phiên bản tiêu chuẩn' : variant),
-                    unitPrice: product.price
-                };
-                return [
-                    ...prev,
-                    newItem
-                ];
+                    productSkuId: variant,
+                    quantity
+                })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Không thể thêm sản phẩm vào giỏ hàng.');
             }
-        });
-        showToast(`Đã thêm ${quantity} hộp "${product.name}" vào giỏ hàng Tết!`, 'success');
+            await syncCartFromApi(currentSessionId);
+            showToast(`Đã thêm ${quantity} hộp "${product.name}" vào giỏ hàng Tết!`, 'success');
+        } catch (error) {
+            console.error('Lỗi thêm vào giỏ hàng:', error);
+            showToast(error instanceof Error ? error.message : 'Không thể thêm sản phẩm vào giỏ hàng.', 'error');
+        }
+    };
+    // ============================================
+    // CART API - UPDATE QUANTITY
+    // ============================================
+    const setCartQuantity = async (itemId, quantity)=>{
+        try {
+            const currentSessionId = ensureSessionId();
+            if (quantity <= 0) {
+                await removeFromCart(itemId);
+                return;
+            }
+            const response = await fetch(`/api/cart/items/${encodeURIComponent(itemId)}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sessionId: currentSessionId,
+                    quantity
+                })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Không thể cập nhật số lượng.');
+            }
+            await syncCartFromApi(currentSessionId);
+        } catch (error) {
+            console.error('Lỗi cập nhật giỏ hàng:', error);
+            showToast(error instanceof Error ? error.message : 'Không thể cập nhật số lượng sản phẩm.', 'error');
+        }
     };
     const updateCartQuantity = (itemId, delta)=>{
-        setCartItems((prev)=>prev.map((item)=>{
-                if (item.id === itemId) {
-                    const nextQty = item.quantity + delta;
-                    return nextQty > 0 ? {
-                        ...item,
-                        quantity: nextQty
-                    } : null;
-                }
-                return item;
-            }).filter((item)=>item !== null));
-    };
-    const setCartQuantity = (itemId, quantity)=>{
-        if (quantity <= 0) {
-            removeFromCart(itemId);
+        const currentItem = cartItems.find((item)=>item.id === itemId);
+        if (!currentItem) return;
+        const nextQuantity = currentItem.quantity + delta;
+        if (nextQuantity <= 0) {
+            void removeFromCart(itemId);
             return;
         }
-        setCartItems((prev)=>prev.map((item)=>item.id === itemId ? {
-                    ...item,
-                    quantity
-                } : item));
+        void setCartQuantity(itemId, nextQuantity);
     };
-    const removeFromCart = (itemId)=>{
-        setCartItems((prev)=>prev.filter((item)=>item.id !== itemId));
-        showToast('Đã xóa món quà khỏi giỏ hàng.', 'info');
+    // ============================================
+    // CART API - REMOVE ITEM
+    // ============================================
+    const removeFromCart = async (itemId)=>{
+        try {
+            const currentSessionId = ensureSessionId();
+            const response = await fetch(`/api/cart/items/${encodeURIComponent(itemId)}?sessionId=${encodeURIComponent(currentSessionId)}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Không thể xóa sản phẩm.');
+            }
+            await syncCartFromApi(currentSessionId);
+            showToast('Đã xóa món quà khỏi giỏ hàng.', 'info');
+        } catch (error) {
+            console.error('Lỗi xóa sản phẩm:', error);
+            showToast(error instanceof Error ? error.message : 'Không thể xóa sản phẩm khỏi giỏ hàng.', 'error');
+        }
     };
-    const clearCart = ()=>{
-        setCartItems([]);
-        showToast('Đã làm trống giỏ quà Tết.', 'info');
+    // ============================================
+    // CART API - CLEAR CART
+    // ============================================
+    const clearCart = async ()=>{
+        try {
+            const currentSessionId = ensureSessionId();
+            const response = await fetch(`/api/cart?sessionId=${encodeURIComponent(currentSessionId)}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Không thể làm trống giỏ hàng.');
+            }
+            setCartItems([]);
+            showToast('Đã làm trống giỏ quà Tết.', 'info');
+        } catch (error) {
+            console.error('Lỗi làm trống giỏ hàng:', error);
+            showToast(error instanceof Error ? error.message : 'Không thể làm trống giỏ hàng.', 'error');
+        }
     };
+    // ============================================
+    // COUPON
+    // ============================================
     const applyCoupon = (code)=>{
         const trimmed = code.trim().toUpperCase();
         if (trimmed === 'TET2027' || trimmed === 'B2BVIP') {
@@ -351,15 +498,19 @@ const AppProvider = ({ children })=>{
             setCouponApplied(true);
             showToast(`Mã ưu đãi "${trimmed}" đã được xác thực thành công!`, 'success');
             return true;
-        } else {
-            showToast('Mã ưu đãi không hợp lệ hoặc đã hết hạn.', 'error');
-            return false;
         }
+        showToast('Mã ưu đãi không hợp lệ hoặc đã hết hạn.', 'error');
+        return false;
     };
+    // ============================================
+    // PLACE ORDER
+    // Lưu ý: Phần tạo đơn hàng vẫn đang dùng logic cũ.
+    // Sẽ tích hợp Orders API ở bước tiếp theo.
+    // ============================================
     const placeOrder = (payload)=>{
         const newOrderCode = `#EG-${Math.floor(100000 + Math.random() * 900000)}`;
         const now = new Date();
-        const dateFormatted = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} (${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')})`;
+        const dateFormatted = `${now.getDate().toString().padStart(2, '0')}/` + `${(now.getMonth() + 1).toString().padStart(2, '0')}/` + `${now.getFullYear()} (` + `${now.getHours().toString().padStart(2, '0')}:` + `${now.getMinutes().toString().padStart(2, '0')})`;
         const orderItems = cartItems.map((item)=>({
                 productId: item.productId,
                 title: item.product.name,
@@ -402,12 +553,39 @@ const AppProvider = ({ children })=>{
                 newOrder,
                 ...prev
             ]);
-        setCartItems([]);
+        // Đồng bộ việc xóa giỏ hàng trên Backend
+        void clearCartAfterOrder();
         showToast(`Đặt hàng thành công! Mã đơn của Quý khách là ${newOrderCode}`, 'success');
         return newOrder;
     };
-    const openAIModal = ()=>setIsAIModalOpen(true);
-    const closeAIModal = ()=>setIsAIModalOpen(false);
+    // Xóa giỏ hàng Backend sau khi tạo đơn hàng bằng logic hiện tại
+    const clearCartAfterOrder = async ()=>{
+        try {
+            const currentSessionId = ensureSessionId();
+            const response = await fetch(`/api/cart?sessionId=${encodeURIComponent(currentSessionId)}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Không thể đồng bộ giỏ hàng.');
+            }
+            setCartItems([]);
+        } catch (error) {
+            console.error('Không thể đồng bộ giỏ hàng sau khi đặt hàng:', error);
+        }
+    };
+    // ============================================
+    // AI MODAL
+    // ============================================
+    const openAIModal = ()=>{
+        setIsAIModalOpen(true);
+    };
+    const closeAIModal = ()=>{
+        setIsAIModalOpen(false);
+    };
+    // ============================================
+    // PROVIDER
+    // ============================================
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(AppContext.Provider, {
         value: {
             currentScreen,
@@ -440,7 +618,7 @@ const AppProvider = ({ children })=>{
         children: children
     }, void 0, false, {
         fileName: "[project]/src/application/AppContext.tsx",
-        lineNumber: 351,
+        lineNumber: 881,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };

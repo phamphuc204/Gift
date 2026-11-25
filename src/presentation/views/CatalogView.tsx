@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -5,14 +6,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../application/AppContext';
-import { PRODUCTS } from '../../infrastructure/mockData';
 import { formatVND } from '../../domain/pricing';
 import { Product } from '../../domain/types';
 
 export const CatalogView: React.FC = () => {
   const { navigateTo, addToCart } = useApp();
+
+  // Dữ liệu sản phẩm lấy từ Backend API
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -20,45 +25,137 @@ export const CatalogView: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>('bestseller');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Gọi API lấy danh sách sản phẩm
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        setError('');
+
+        const response = await fetch('/api/products', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || 'Không thể lấy danh sách sản phẩm.'
+          );
+        }
+
+        setProducts(result.data);
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Đã xảy ra lỗi khi tải sản phẩm.'
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchProducts();
+
+    return () => controller.abort();
+  }, []);
+
   const categories = [
-    { id: 'all', label: `Tất Cả Mẫu Hộp (${PRODUCTS.length})` },
+    { id: 'all', label: `Tất Cả Mẫu Hộp (${products.length})` },
     { id: 'son-mai', label: 'Hộp Gỗ Sơn Mài' },
     { id: 'ruong-go', label: 'Rương Gỗ Khắc Chữ' },
     { id: 'yen-sam', label: 'Hộp Quà Yến Sào & Sâm' },
     { id: 'truyen-thong', label: 'Bộ Quà Rượu Vang & Trà Shan Tuyết' },
   ];
 
+  // Tìm kiếm, lọc và sắp xếp sản phẩm
   const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter((item) => {
-      // Category filter
-      if (activeCategory !== 'all' && item.category !== activeCategory) {
-        return false;
-      }
-      // Search term
-      if (searchTerm.trim()) {
-        const term = searchTerm.toLowerCase();
-        const matchesName = item.name.toLowerCase().includes(term);
-        const matchesDesc = item.description.toLowerCase().includes(term);
-        const matchesSku = item.sku.toLowerCase().includes(term);
-        if (!matchesName && !matchesDesc && !matchesSku) return false;
-      }
-      // Price range
-      if (priceRange === 'under-1m' && item.price >= 1000000) return false;
-      if (priceRange === '1m-2m' && (item.price < 1000000 || item.price > 2000000)) return false;
-      if (priceRange === '2m-3.5m' && (item.price < 2000000 || item.price > 3500000)) return false;
-      if (priceRange === 'above-3.5m' && item.price <= 3500000) return false;
+    return products
+      .filter((item) => {
+        // Lọc danh mục
+        if (
+          activeCategory !== 'all' &&
+          item.category !== activeCategory
+        ) {
+          return false;
+        }
 
-      return true;
-    }).sort((a, b) => {
-      if (sortBy === 'price-low') return a.price - b.price;
-      if (sortBy === 'price-high') return b.price - a.price;
-      if (sortBy === 'rating') return b.rating - a.rating;
-      return b.reviewsCount - a.reviewsCount; // default bestseller
-    });
-  }, [activeCategory, searchTerm, priceRange, sortBy]);
+        // Tìm kiếm
+        if (searchTerm.trim()) {
+          const term = searchTerm.trim().toLowerCase();
 
+          const matchesName = item.name.toLowerCase().includes(term);
+          const matchesDesc = item.description.toLowerCase().includes(term);
+          const matchesSku = item.sku.toLowerCase().includes(term);
+
+          if (!matchesName && !matchesDesc && !matchesSku) {
+            return false;
+          }
+        }
+
+        // Lọc khoảng giá
+        if (priceRange === 'under-1m' && item.price >= 1000000) {
+          return false;
+        }
+
+        if (
+          priceRange === '1m-2m' &&
+          (item.price < 1000000 || item.price > 2000000)
+        ) {
+          return false;
+        }
+
+        if (
+          priceRange === '2m-3.5m' &&
+          (item.price < 2000000 || item.price > 3500000)
+        ) {
+          return false;
+        }
+
+        if (priceRange === 'above-3.5m' && item.price <= 3500000) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'price-low') {
+          return a.price - b.price;
+        }
+
+        if (sortBy === 'price-high') {
+          return b.price - a.price;
+        }
+
+        if (sortBy === 'rating') {
+          return b.rating - a.rating;
+        }
+
+        return b.reviewsCount - a.reviewsCount;
+      });
+  }, [products, activeCategory, searchTerm, priceRange, sortBy]);
+
+  // Phân trang
   const itemsPerPage = 6;
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / itemsPerPage)
+  );
+
   const displayedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -81,9 +178,11 @@ export const CatalogView: React.FC = () => {
         }}
       >
         <div className="absolute inset-0 radial-lantern-glow pointer-events-none"></div>
+
         <div className="absolute top-4 left-6 text-amber-500/20 text-5xl font-serif select-none hidden lg:block pointer-events-none">
           ❖
         </div>
+
         <div className="absolute top-4 right-6 text-amber-500/20 text-5xl font-serif select-none hidden lg:block pointer-events-none">
           ❖
         </div>
@@ -97,81 +196,94 @@ export const CatalogView: React.FC = () => {
             >
               Trang Chủ
             </button>
+
             <span>/</span>
-            <span className="text-amber-300  font-semibold">Tuyển Tập Hộp Quà Tết Đinh Mùi 2027</span>
+
+            <span className="text-amber-300 font-semibold">
+              Tuyển Tập Hộp Quà Tết Đinh Mùi 2027
+            </span>
           </div>
 
           {/* Header Title */}
           <div className="text-center max-w-3xl mx-auto mb-8">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-950/70 border border-amber-400/40 shadow-inner mb-3 backdrop-blur-sm">
               <span className="text-xs">🌸</span>
+
               <span className="text-[11px] lg:text-xs font-semibold tracking-widest text-amber-300 uppercase">
                 BỘ SƯU TẬP TẾT ĐINH MÙI 2027
               </span>
             </div>
+
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-4 tracking-tight font-serif-tet gold-gradient-text">
-              Tuyển Tập{' '}
+              Tuyển Tập
               <br />
               <span className="gold-gradient-text drop-shadow-[0_4px_16px_rgba(245,197,66,0.3)]">
                 Hộp Quà Tết Đinh Mùi 2027
               </span>
             </h1>
+
             <p className="text-amber-100/85 text-sm sm:text-base leading-relaxed">
               Mỗi hộp quà là một tác phẩm nghệ thuật sơn mài & rương gỗ mộc quý giá, kết tinh phong vị cổ
               truyền cùng sản vật thượng hạng từ các vùng đất danh tiếng.
             </p>
           </div>
 
-          {/* 4 Trust Badges */}
+          {/* Trust Badges */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 max-w-5xl mx-auto pt-6 border-t border-amber-500/20">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-red-950/60 border border-amber-500/20 backdrop-blur-sm">
-              <div className="w-9 h-9 rounded-full bg-red-900/60 border border-amber-400/30 flex items-center justify-center text-amber-300 text-sm shrink-0">
-                <i className="fa-solid fa-certificate"></i>
+            {[
+              {
+                icon: 'fa-certificate',
+                title: '100% Tuyển Chọn',
+                description: 'Nguồn gốc chuẩn vị',
+              },
+              {
+                icon: 'fa-box-open',
+                title: 'Đóng Gói Sơn Mài',
+                description: 'Chế tác thủ công tinh xảo',
+              },
+              {
+                icon: 'fa-truck-fast',
+                title: 'Giao Hỏa Tốc',
+                description: 'Đúng hẹn toàn quốc',
+              },
+              {
+                icon: 'fa-receipt',
+                title: 'Hóa Đơn VAT',
+                description: 'Minh bạch đầy đủ',
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="flex items-center gap-3 p-3 rounded-xl bg-red-950/60 border border-amber-500/20 backdrop-blur-sm"
+              >
+                <div className="w-9 h-9 rounded-full bg-red-900/60 border border-amber-400/30 flex items-center justify-center text-amber-300 text-sm shrink-0">
+                  <i className={`fa-solid ${item.icon}`}></i>
+                </div>
+
+                <div>
+                  <div className="text-xs font-bold text-amber-200">
+                    {item.title}
+                  </div>
+
+                  <div className="text-[10px] text-red-200/60">
+                    {item.description}
+                  </div>
+                </div>
               </div>
-              <div>
-                <div className="text-xs font-bold text-amber-200">100% Tuyển Chọn</div>
-                <div className="text-[10px] text-red-200/60">Nguồn gốc chuẩn vị</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-red-950/60 border border-amber-500/20 backdrop-blur-sm">
-              <div className="w-9 h-9 rounded-full bg-red-900/60 border border-amber-400/30 flex items-center justify-center text-amber-300 text-sm shrink-0">
-                <i className="fa-solid fa-box-open"></i>
-              </div>
-              <div>
-                <div className="text-xs font-bold text-amber-200">Đóng Gói Sơn Mài</div>
-                <div className="text-[10px] text-red-200/60">Chế tác thủ công tinh xảo</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-red-950/60 border border-amber-500/20 backdrop-blur-sm">
-              <div className="w-9 h-9 rounded-full bg-red-900/60 border border-amber-400/30 flex items-center justify-center text-amber-300 text-sm shrink-0">
-                <i className="fa-solid fa-truck-fast"></i>
-              </div>
-              <div>
-                <div className="text-xs font-bold text-amber-200">Giao Hỏa Tốc</div>
-                <div className="text-[10px] text-red-200/60">Đúng hẹn toàn quốc</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-red-950/60 border border-amber-500/20 backdrop-blur-sm">
-              <div className="w-9 h-9 rounded-full bg-red-900/60 border border-amber-400/30 flex items-center justify-center text-amber-300 text-sm shrink-0">
-                <i className="fa-solid fa-receipt"></i>
-              </div>
-              <div>
-                <div className="text-xs font-bold text-amber-200">Hóa Đơn VAT</div>
-                <div className="text-[10px] text-red-200/60">Minh bạch đầy đủ</div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Main Content Catalog Area */}
+      {/* Main Content */}
       <main className="relative max-w-7xl mx-auto px-6 lg:px-12 py-10 z-20">
-        {/* Category Filter Pills & Search / Sort Toolbar */}
+        {/* Search and Filters */}
         <div className="bg-gradient-to-b from-[#3a060a] to-[#250305] rounded-2xl gold-card-shadow p-5 lg:p-6 border border-amber-400/30 backdrop-blur-xl mb-10">
           {/* Category Pills */}
           <div className="flex flex-wrap items-center gap-2.5 pb-5 border-b border-amber-500/20">
             {categories.map((cat) => {
               const isActive = activeCategory === cat.id;
+
               return (
                 <button
                   key={cat.id}
@@ -191,11 +303,11 @@ export const CatalogView: React.FC = () => {
             })}
           </div>
 
-          {/* Search Input, Price Range, and Sort Dropdowns */}
+          {/* Search, Price and Sort */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-5 items-center">
-            {/* Search Input */}
             <div className="relative">
               <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-400/70 text-xs"></i>
+
               <input
                 type="text"
                 value={searchTerm}
@@ -208,7 +320,6 @@ export const CatalogView: React.FC = () => {
               />
             </div>
 
-            {/* Price Range Dropdown */}
             <div>
               <select
                 value={priceRange}
@@ -218,41 +329,96 @@ export const CatalogView: React.FC = () => {
                 }}
                 className="w-full text-xs text-white font-medium bg-red-950/60 border border-amber-500/30 rounded-xl px-3.5 py-2 outline-none focus:border-amber-400 transition cursor-pointer"
               >
-                <option value="all" className="bg-red-950 text-white">Mức giá: Tất cả mức giá</option>
-                <option value="under-1m" className="bg-red-950 text-white">Dưới 1.000.000₫</option>
-                <option value="1m-2m" className="bg-red-950 text-white">1.000.000₫ - 2.000.000₫</option>
-                <option value="2m-3.5m" className="bg-red-950 text-white">2.000.000₫ - 3.500.000₫</option>
-                <option value="above-3.5m" className="bg-red-950 text-white">Trên 3.500.000₫ (VIP)</option>
+                <option value="all" className="bg-red-950 text-white">
+                  Mức giá: Tất cả mức giá
+                </option>
+
+                <option value="under-1m" className="bg-red-950 text-white">
+                  Dưới 1.000.000₫
+                </option>
+
+                <option value="1m-2m" className="bg-red-950 text-white">
+                  1.000.000₫ - 2.000.000₫
+                </option>
+
+                <option value="2m-3.5m" className="bg-red-950 text-white">
+                  2.000.000₫ - 3.500.000₫
+                </option>
+
+                <option value="above-3.5m" className="bg-red-950 text-white">
+                  Trên 3.500.000₫ (VIP)
+                </option>
               </select>
             </div>
 
-            {/* Sort Dropdown */}
             <div>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full text-xs text-white font-medium bg-red-950/60 border border-amber-500/30 rounded-xl px-3.5 py-2 outline-none focus:border-amber-400 transition cursor-pointer"
               >
-                <option value="bestseller" className="bg-red-950 text-white">Sắp xếp: Bán chạy nhất Tết 2027</option>
-                <option value="price-low" className="bg-red-950 text-white">Giá từ thấp đến cao</option>
-                <option value="price-high" className="bg-red-950 text-white">Giá từ cao đến thấp</option>
-                <option value="rating" className="bg-red-950 text-white">Đánh giá cao nhất</option>
+                <option value="bestseller" className="bg-red-950 text-white">
+                  Sắp xếp: Bán chạy nhất Tết 2027
+                </option>
+
+                <option value="price-low" className="bg-red-950 text-white">
+                  Giá từ thấp đến cao
+                </option>
+
+                <option value="price-high" className="bg-red-950 text-white">
+                  Giá từ cao đến thấp
+                </option>
+
+                <option value="rating" className="bg-red-950 text-white">
+                  Đánh giá cao nhất
+                </option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Product Grid: 6 Luxury Tet Gift Boxes */}
-        {displayedProducts.length === 0 ? (
+        {/* Product Grid */}
+        {isLoading ? (
+          <div className="text-center py-16">
+            <i className="fa-solid fa-spinner fa-spin text-3xl text-amber-400 mb-3"></i>
+            <p className="text-amber-200 text-sm">
+              Đang tải danh sách hộp quà...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-16 bg-red-950/40 rounded-2xl border border-red-500/30">
+            <i className="fa-solid fa-triangle-exclamation text-3xl text-red-400 mb-3"></i>
+
+            <p className="text-red-300 text-sm">{error}</p>
+
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 rounded-xl bg-amber-400 text-red-950 font-bold text-xs cursor-pointer"
+            >
+              Thử tải lại
+            </button>
+          </div>
+        ) : displayedProducts.length === 0 ? (
           <div className="text-center py-16 bg-red-950/40 rounded-2xl border border-amber-500/20">
             <i className="fa-solid fa-box-open text-4xl text-amber-400/50 mb-3"></i>
-            <h3 className="text-lg font-bold text-white font-serif-tet">Không tìm thấy hộp quà phù hợp</h3>
-            <p className="text-xs text-red-200/70 mt-1">Vui lòng điều chỉnh lại bộ lọc hoặc từ khóa tìm kiếm.</p>
+
+            <h3 className="text-lg font-bold text-white font-serif-tet">
+              Không tìm thấy hộp quà phù hợp
+            </h3>
+
+            <p className="text-xs text-red-200/70 mt-1">
+              Vui lòng điều chỉnh lại bộ lọc hoặc từ khóa tìm kiếm.
+            </p>
+
             <button
               onClick={() => {
                 setActiveCategory('all');
                 setSearchTerm('');
                 setPriceRange('all');
+                setCurrentPage(1);
               }}
               className="mt-4 px-4 py-2 rounded-xl bg-amber-400 text-red-950 font-bold text-xs uppercase cursor-pointer"
             >
@@ -266,7 +432,7 @@ export const CatalogView: React.FC = () => {
                 key={prod.id}
                 className="bg-gradient-to-b from-[#3a060a] to-[#250305] rounded-2xl border border-amber-400/30 overflow-hidden gold-card-shadow flex flex-col group hover:border-amber-300 transition-all duration-300"
               >
-                {/* Product Image Frame */}
+                {/* Product Image */}
                 <div
                   className="relative aspect-square overflow-hidden bg-[#2a0407] cursor-pointer"
                   onClick={() => navigateTo('product-detail', prod.id)}
@@ -276,6 +442,7 @@ export const CatalogView: React.FC = () => {
                     alt={prod.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
+
                   {prod.badge && (
                     <span className="absolute top-3 left-3 bg-gradient-to-r from-amber-400 to-amber-500 text-red-950 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-md">
                       {prod.badge}
@@ -283,14 +450,22 @@ export const CatalogView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Content Details */}
+                {/* Product Details */}
                 <div className="p-5 flex flex-col flex-1 justify-between space-y-4">
                   <div>
                     {/* Rating */}
                     <div className="flex items-center gap-1 text-amber-400 text-xs mb-1.5">
                       {[...Array(5)].map((_, i) => (
-                        <i key={i} className="fa-solid fa-star text-[11px]"></i>
+                        <i
+                          key={i}
+                          className={`fa-solid fa-star text-[11px] ${
+                            i < Math.round(prod.rating)
+                              ? ''
+                              : 'opacity-30'
+                          }`}
+                        ></i>
                       ))}
+
                       <span className="text-[11px] text-amber-200/70 ml-1">
                         ({prod.reviewsCount} đánh giá)
                       </span>
@@ -302,6 +477,7 @@ export const CatalogView: React.FC = () => {
                     >
                       {prod.name}
                     </h3>
+
                     <p className="text-xs text-amber-100/75 leading-relaxed line-clamp-2">
                       {prod.description}
                     </p>
@@ -312,24 +488,30 @@ export const CatalogView: React.FC = () => {
                       <span className="text-lg font-black text-amber-300 font-serif-tet">
                         {formatVND(prod.price)}
                       </span>
+
                       <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                         <i className="fa-solid fa-shield-halved text-[10px]"></i>
-                        Có sẵn giao ngay
+                        {prod.inStock && prod.stockCount > 0
+                          ? 'Có sẵn giao ngay'
+                          : 'Tạm hết hàng'}
                       </span>
                     </div>
 
-                    {/* Action buttons */}
+                    {/* Action Buttons */}
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => addToCart(prod, 1)}
-                        className="py-2 px-3 rounded-xl border border-amber-400/40 text-amber-200 hover:text-white hover:bg-amber-500/10 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        disabled={!prod.inStock || prod.stockCount <= 0}
+                        className="py-2 px-3 rounded-xl border border-amber-400/40 text-amber-200 hover:text-white hover:bg-amber-500/10 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <i className="fa-solid fa-gift text-[11px]"></i>
                         <span>Thêm vào giỏ</span>
                       </button>
+
                       <button
                         onClick={() => handleBuyNow(prod)}
-                        className="py-2 px-3 rounded-xl bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-red-950 text-xs font-bold tracking-wide hover:from-amber-200 hover:to-amber-400 shadow-md shadow-amber-500/25 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                        disabled={!prod.inStock || prod.stockCount <= 0}
+                        className="py-2 px-3 rounded-xl bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 text-red-950 text-xs font-bold tracking-wide hover:from-amber-200 hover:to-amber-400 shadow-md shadow-amber-500/25 transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <span>Đặt mua ngay</span>
                       </button>
@@ -341,57 +523,68 @@ export const CatalogView: React.FC = () => {
           </div>
         )}
 
-        {/* Pagination Controls */}
-        <div className="flex items-center justify-center gap-2 mb-16">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            aria-label="Trang trước"
-            className="w-9 h-9 rounded-xl bg-red-950/70 border border-amber-500/30 text-amber-300 hover:bg-amber-500 hover:text-red-950 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-all cursor-pointer text-xs"
-          >
-            <i className="fa-solid fa-chevron-left"></i>
-          </button>
-          {[...Array(totalPages)].map((_, i) => {
-            const pageNum = i + 1;
-            const isCurrent = currentPage === pageNum;
-            return (
-              <button
-                key={pageNum}
-                onClick={() => setCurrentPage(pageNum)}
-                className={`w-9 h-9 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
-                  isCurrent
-                    ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-red-950 shadow-md shadow-amber-500/30'
-                    : 'bg-red-950/70 border border-amber-500/30 text-amber-200 hover:border-amber-400 hover:text-white'
-                }`}
-              >
-                {pageNum}
-              </button>
-            );
-          })}
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            aria-label="Trang kế tiếp"
-            className="w-9 h-9 rounded-xl bg-red-950/70 border border-amber-500/30 text-amber-300 hover:bg-amber-500 hover:text-red-950 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-all cursor-pointer text-xs"
-          >
-            <i className="fa-solid fa-chevron-right"></i>
-          </button>
-        </div>
+        {/* Pagination */}
+        {!isLoading && !error && filteredProducts.length > 0 && (
+          <div className="flex items-center justify-center gap-2 mb-16">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              aria-label="Trang trước"
+              className="w-9 h-9 rounded-xl bg-red-950/70 border border-amber-500/30 text-amber-300 hover:bg-amber-500 hover:text-red-950 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-all cursor-pointer text-xs"
+            >
+              <i className="fa-solid fa-chevron-left"></i>
+            </button>
+
+            {[...Array(totalPages)].map((_, i) => {
+              const pageNum = i + 1;
+              const isCurrent = currentPage === pageNum;
+
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-9 h-9 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                    isCurrent
+                      ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-red-950 shadow-md shadow-amber-500/30'
+                      : 'bg-red-950/70 border border-amber-500/30 text-amber-200 hover:border-amber-400 hover:text-white'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() =>
+                setCurrentPage((p) => Math.min(totalPages, p + 1))
+              }
+              disabled={currentPage === totalPages}
+              aria-label="Trang kế tiếp"
+              className="w-9 h-9 rounded-xl bg-red-950/70 border border-amber-500/30 text-amber-300 hover:bg-amber-500 hover:text-red-950 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-all cursor-pointer text-xs"
+            >
+              <i className="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        )}
 
         {/* B2B Corporate Banner */}
         <div className="bg-gradient-to-r from-[#5c0b11] via-[#750e17] to-[#3a060a] rounded-3xl p-6 lg:p-10 border border-amber-400/40 gold-card-shadow flex flex-col lg:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/60 border border-amber-400/30 text-[11px] font-bold text-amber-300 uppercase tracking-wider">
-              <i className="fa-solid fa-crown text-[10px]"></i> GIẢI PHÁP QUÀ TẾT DOANH NGHIỆP 2027
+              <i className="fa-solid fa-crown text-[10px]"></i>
+              GIẢI PHÁP QUÀ TẾT DOANH NGHIỆP 2027
             </div>
+
             <h2 className="text-2xl lg:text-3xl font-black font-serif-tet text-white">
               Đặt Hàng Quà Tết Doanh Nghiệp Số Lượng Lớn?
             </h2>
+
             <p className="text-xs lg:text-sm text-amber-100/80 max-w-xl leading-relaxed">
               Chiết khấu đặc quyền đến 25%, đóng gói sơn mài thượng hạng, in thiệp chúc riêng từng đối tác và
               giao hàng tận nơi 63 tỉnh thành.
             </p>
           </div>
+
           <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full sm:w-auto">
             <button
               onClick={() => navigateTo('contact')}
@@ -400,6 +593,7 @@ export const CatalogView: React.FC = () => {
               <i className="fa-solid fa-phone-volume text-xs"></i>
               <span>YÊU CẦU BÁO GIÁ NHANH</span>
             </button>
+
             <button
               onClick={() => navigateTo('corporate')}
               className="w-full sm:w-auto px-6 py-3.5 rounded-full font-semibold text-xs text-amber-200 border border-amber-400/40 hover:bg-amber-500/10 hover:border-amber-300 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
